@@ -1,0 +1,301 @@
+ticket_id,customer_id,reservation_id,category,channel,status,created_date,ticket_body
+1,272,1902,Vehicle Issue,Chat,In Progress,2024-07-17,"The Porsche 911 I picked up under reservation #1902 has a check-engine light on. Please advise, my contact number is +1-210-343-3218x1960."
+2,391,1108,General Feedback,Phone,Open,2023-09-15,"Suggestion: it would help to have a mobile check-in option, would have made reservation #1108 even faster."
+3,288,212,General Feedback,Email,Resolved,2024-02-16,"Just wanted to say the pickup experience for reservation #212 was smooth, great job by the Suttonburgh Branch team!"
+4,268,1020,General Feedback,Phone,Open,2024-10-20,"Just wanted to say the pickup experience for reservation #1020 was smooth, great job by the Davidstad Branch team!"
+5,12,546,Billing Question,Chat,Open,2023-10-21,"Hi, this is Cody Hendricks. I was charged twice for reservation #546. Please refund the duplicate charge. You can reach me at 001-783-550-3056x413 or pfoster@example.com."
+6,380,828,General Feedback,Email,Open,2024-10-21,"Just wanted to say the pickup experience for reservation #828 was smooth, great job by the North Valerie Branch team!"
+7,419,,Refund Request,Chat,Resolved,2025-05-11,Requesting a refund for reservation #N/A since we had to cancel due to a flight delay. Email is tasha01@example.net.
+8,441,1295,Account Access,Phone,Resolved,2024-04-06,"I can't log into my Avelto account anymore, my registered email is harrellkenneth@example.net. Can you help me reset access?"
+9,390,,Vehicle Issue,Email,Escalated,2025-08-19,"The Honda Civic I picked up under reservation #N/A has a check-engine light on. Please advise, my contact number is 793.625.2880x95701."
+10,133,799,Damage Claim,Phone,Resolved,2024-09-13,Filing a damage report for reservation #799 - a small scratch on the rear bumper of the Nissan Altima was already there at pickup.
+11,245,1296,General Feedback,Email,Open,2024-08-16,"Suggestion: it would help to have a mobile check-in option, would have made reservation #1296 even faster."
+12,159,1215,Damage Claim,Chat,Open,2024-02-14,Filing a damage report for reservation #1215 - a small scratch on the rear bumper of the Chevrolet Camaro was already there at pickup.
+13,409,1977,Account Access,Email,Resolved,2024-03-13,"My driver's license on file is expired, I uploaded a new one - can someone confirm it's been updated? - Amanda Santiago"
+14,298,1477,Billing Question,Email,In Progress,2024-10-23,"Hi, this is David Wright. I was charged twice for reservation #1477. Please refund the duplicate charge. You can reach me at +1-610-965-1333x87262 or nancyjones@example.net."
+15,446,,General Feedback,Phone,In Progress,2025-08-30,"Just wanted to say the pickup experience for reservation #N/A was smooth, great job by the West Kristinaside Branch team!"
+16,54,966,General Feedback,Phone,In Progress,2025-06-25,"Just wanted to say the pickup experience for reservation #966 was smooth, great job by the Juarezview Branch team!"
+17,29,103,Billing Question,Chat,In Progress,2024-04-10,I don't recognize a charge on my card related to reservation #103. Can someone call me back at 2503097882?
+18,55,,Vehicle Issue,Chat,Resolved,2025-09-06,"The McLaren 720S I picked up under reservation #N/A has a check-engine light on. Please advise, my contact number is (719)639-9091x6998."
+19,37,1999,Refund Request,Email,Open,2023-09-05,Requesting a refund for reservation #1999 since we had to cancel due to a flight delay. Email is sarahibarra@example.org.
+20,280,248,Booking Change,Chat,In Progress,2025-06-03,"Can I change the return branch for reservation #248? Let me know what's possible, thanks - Joseph Chavez."
+21,378,899,Roadside Assistance,Email,In Progress,2024-11-09,"We have a flat tire with the Jeep Grand Cherokee from reservation #899, currently stopped safely. Please send help, call 849-635-3487x401."
+22,441,1295,Vehicle Issue,Email,Escalated,2024-03-31,There's a strange rattling noise coming from the Honda Civic (reservation #1295). Can I get a replacement vehicle?
+23,452,368,Vehicle Issue,Phone,Resolved,2023-11-17,"The BMW 3 Series I picked up under reservation #368 has a check-engine light on. Please advise, my contact number is 4535315869."
+24,417,1623,Refund Request,Email,In Progress,2024-09-17,"The Mercedes C-Class we received didn't match what we booked, requesting partial refund for reservation #1623."
+25,428,844,Account Access,Phone,Open,2024-10-11,"I can't log into my Avelto account anymore, my registered email is wileyjose@example.net. Can you help me reset access?"
+26,140,1254,Booking Change,Chat,Resolved,2025-08-28,I need to extend reservation #1254 by two days. Please confirm availability and email me at fletcheraaron@example.net.
+27,47,483,Refund Request,Phone,Open,2025-07-10,Requesting a refund for reservation #483 since we had to cancel due to a flight delay. Email is jamesortega@example.com.
+28,277,,Roadside Assistance,Chat,Open,2025-04-15,The Honda Civic won't start after our overnight stop (reservation #N/A). Need roadside support ASAP.
+29,97,306,Damage Claim,Email,In Progress,2023-11-14,We were involved in a minor parking-lot incident during reservation #306. Please send the claim form to traceycarr@example.org.
+30,253,746,Billing Question,Chat,Resolved,2024-07-13,I don't recognize a charge on my card related to reservation #746. Can someone call me back at 569.436.7632x016?
+31,42,1823,Roadside Assistance,Email,Open,2024-10-30,The BMW 3 Series won't start after our overnight stop (reservation #1823). Need roadside support ASAP.
+32,137,60,Booking Change,Email,Open,2023-11-04,"Can I change the return branch for reservation #60? Let me know what's possible, thanks - Justin Martinez."
+33,263,1214,Damage Claim,Email,Resolved,2025-01-05,We were involved in a minor parking-lot incident during reservation #1214. Please send the claim form to lstein@example.net.
+34,327,668,Damage Claim,Email,Escalated,2023-08-22,Filing a damage report for reservation #668 - a small scratch on the rear bumper of the Nissan Altima was already there at pickup.
+35,104,452,Damage Claim,Phone,Escalated,2025-06-26,Filing a damage report for reservation #452 - a small scratch on the rear bumper of the Honda Civic was already there at pickup.
+36,75,,Billing Question,Chat,In Progress,2025-08-14,I don't recognize a charge on my card related to reservation #N/A. Can someone call me back at 755.564.6417x080?
+37,441,1295,General Feedback,Email,Resolved,2024-04-03,"Suggestion: it would help to have a mobile check-in option, would have made reservation #1295 even faster."
+38,189,1165,Booking Change,Email,Open,2024-10-29,I need to extend reservation #1165 by two days. Please confirm availability and email me at melissa91@example.net.
+39,392,351,General Feedback,Chat,In Progress,2025-02-01,"Suggestion: it would help to have a mobile check-in option, would have made reservation #351 even faster."
+40,483,1133,Booking Change,Chat,Escalated,2025-05-02,I need to extend reservation #1133 by two days. Please confirm availability and email me at mariahmiller@example.com.
+41,106,1715,Damage Claim,Email,Escalated,2024-11-23,We were involved in a minor parking-lot incident during reservation #1715. Please send the claim form to michaelgreen@example.com.
+42,93,890,Damage Claim,Email,Open,2024-01-17,Filing a damage report for reservation #890 - a small scratch on the rear bumper of the BMW 3 Series was already there at pickup.
+43,21,,Refund Request,Chat,Escalated,2025-06-16,Requesting a refund for reservation #N/A since we had to cancel due to a flight delay. Email is michael74@example.com.
+44,424,493,Vehicle Issue,Email,Escalated,2023-12-14,"The Nissan Altima I picked up under reservation #493 has a check-engine light on. Please advise, my contact number is 631-335-1823x374."
+45,477,606,Damage Claim,Email,Open,2024-12-06,Filing a damage report for reservation #606 - a small scratch on the rear bumper of the McLaren 720S was already there at pickup.
+46,415,332,General Feedback,Phone,Open,2024-09-13,"Suggestion: it would help to have a mobile check-in option, would have made reservation #332 even faster."
+47,247,284,General Feedback,Chat,Escalated,2024-10-18,"Suggestion: it would help to have a mobile check-in option, would have made reservation #284 even faster."
+48,37,,Billing Question,Chat,In Progress,2025-07-16,"Hi, this is Kevin Reeves. I was charged twice for reservation #N/A. Please refund the duplicate charge. You can reach me at (932)681-2067 or halljasmine@example.net."
+49,335,688,Vehicle Issue,Phone,Resolved,2024-08-21,"The BMW 3 Series I picked up under reservation #688 has a check-engine light on. Please advise, my contact number is 413.349.3618x324."
+50,160,749,Billing Question,Email,Resolved,2025-03-15,I don't recognize a charge on my card related to reservation #749. Can someone call me back at 001-947-917-4648?
+51,288,1145,Roadside Assistance,Phone,In Progress,2025-04-20,"We have a flat tire with the Honda Civic from reservation #1145, currently stopped safely. Please send help, call 994-601-3990x49027."
+52,123,,Booking Change,Phone,In Progress,2025-04-27,"Can I change the return branch for reservation #N/A? Let me know what's possible, thanks - Sarah Hardy."
+53,329,548,Roadside Assistance,Email,Open,2025-08-12,The Toyota Corolla won't start after our overnight stop (reservation #548). Need roadside support ASAP.
+54,404,996,Roadside Assistance,Phone,Resolved,2024-07-24,"We have a flat tire with the Toyota Corolla from reservation #996, currently stopped safely. Please send help, call 548.424.7710."
+55,403,1639,General Feedback,Chat,Open,2023-09-02,"Just wanted to say the pickup experience for reservation #1639 was smooth, great job by the Jordanville Branch team!"
+56,448,367,Vehicle Issue,Email,In Progress,2024-05-19,There's a strange rattling noise coming from the Ferrari 488 (reservation #367). Can I get a replacement vehicle?
+57,132,304,Account Access,Email,Open,2024-09-11,"My driver's license on file is expired, I uploaded a new one - can someone confirm it's been updated? - Deanna Swanson"
+58,29,1398,Account Access,Chat,Escalated,2023-10-20,"I can't log into my Avelto account anymore, my registered email is jpitts@example.org. Can you help me reset access?"
+59,79,44,General Feedback,Email,Open,2023-12-28,"Suggestion: it would help to have a mobile check-in option, would have made reservation #44 even faster."
+60,267,,Damage Claim,Phone,Resolved,2025-05-01,We were involved in a minor parking-lot incident during reservation #N/A. Please send the claim form to georgemiller@example.com.
+61,329,1428,General Feedback,Chat,In Progress,2025-06-14,"Suggestion: it would help to have a mobile check-in option, would have made reservation #1428 even faster."
+62,459,533,Account Access,Chat,Resolved,2025-02-25,"I can't log into my Avelto account anymore, my registered email is spencedominique@example.com. Can you help me reset access?"
+63,329,583,Billing Question,Phone,In Progress,2025-01-21,I don't recognize a charge on my card related to reservation #583. Can someone call me back at 5905974395?
+64,395,360,Account Access,Email,Open,2024-12-11,"I can't log into my Avelto account anymore, my registered email is alyssa42@example.com. Can you help me reset access?"
+65,295,,Billing Question,Email,Open,2025-06-19,I don't recognize a charge on my card related to reservation #N/A. Can someone call me back at 245.617.1236x8516?
+66,76,,Roadside Assistance,Email,Open,2025-05-12,"We have a flat tire with the Honda Civic from reservation #N/A, currently stopped safely. Please send help, call 596-351-3709x859."
+67,394,,Refund Request,Phone,Resolved,2025-08-08,"The Mercedes C-Class we received didn't match what we booked, requesting partial refund for reservation #N/A."
+68,217,594,Account Access,Phone,Escalated,2025-03-03,"I can't log into my Avelto account anymore, my registered email is hhill@example.com. Can you help me reset access?"
+69,100,1499,Roadside Assistance,Email,Open,2023-12-20,The Ferrari 488 won't start after our overnight stop (reservation #1499). Need roadside support ASAP.
+70,165,1265,Account Access,Chat,Open,2024-02-19,"I can't log into my Avelto account anymore, my registered email is alfred40@example.org. Can you help me reset access?"
+71,127,1314,Roadside Assistance,Phone,In Progress,2024-07-10,"We have a flat tire with the Mercedes C-Class from reservation #1314, currently stopped safely. Please send help, call 001-568-211-7758x9178."
+72,378,172,Account Access,Phone,Escalated,2024-12-23,"My driver's license on file is expired, I uploaded a new one - can someone confirm it's been updated? - Joseph Johnson"
+73,73,1236,Damage Claim,Chat,In Progress,2024-02-07,Filing a damage report for reservation #1236 - a small scratch on the rear bumper of the Jeep Grand Cherokee was already there at pickup.
+74,467,764,Refund Request,Chat,Resolved,2024-12-24,Requesting a refund for reservation #764 since we had to cancel due to a flight delay. Email is elizabeth65@example.net.
+75,448,,Account Access,Chat,Resolved,2025-06-08,"I can't log into my Avelto account anymore, my registered email is danny49@example.org. Can you help me reset access?"
+76,497,,Booking Change,Email,In Progress,2025-05-08,I need to extend reservation #N/A by two days. Please confirm availability and email me at ashleymorales@example.org.
+77,331,1777,Damage Claim,Phone,Escalated,2025-07-27,We were involved in a minor parking-lot incident during reservation #1777. Please send the claim form to ericwilliamson@example.net.
+78,342,1309,Vehicle Issue,Email,Escalated,2025-07-11,There's a strange rattling noise coming from the Toyota Corolla (reservation #1309). Can I get a replacement vehicle?
+79,397,1705,Booking Change,Phone,Escalated,2023-08-20,"Can I change the return branch for reservation #1705? Let me know what's possible, thanks - Jeanne Brown."
+80,155,,Billing Question,Email,Open,2025-05-10,I don't recognize a charge on my card related to reservation #N/A. Can someone call me back at (783)888-5160x6071?
+81,330,615,Billing Question,Phone,Resolved,2025-06-15,I don't recognize a charge on my card related to reservation #615. Can someone call me back at 860-352-9751?
+82,142,1858,Refund Request,Email,Resolved,2025-05-16,Requesting a refund for reservation #1858 since we had to cancel due to a flight delay. Email is curtisscott@example.org.
+83,35,,General Feedback,Chat,Escalated,2025-05-08,"Suggestion: it would help to have a mobile check-in option, would have made reservation #N/A even faster."
+84,488,1502,Vehicle Issue,Email,Open,2025-03-26,"The Honda Civic I picked up under reservation #1502 has a check-engine light on. Please advise, my contact number is 649-305-8147x7005."
+85,393,1799,Booking Change,Email,Open,2025-05-25,I need to extend reservation #1799 by two days. Please confirm availability and email me at vgarcia@example.net.
+86,101,1304,Account Access,Chat,Resolved,2024-01-17,"My driver's license on file is expired, I uploaded a new one - can someone confirm it's been updated? - Travis Hunter"
+87,397,1570,Vehicle Issue,Phone,In Progress,2024-03-17,"The Nissan Altima I picked up under reservation #1570 has a check-engine light on. Please advise, my contact number is +1-390-451-5186x44925."
+88,424,,Roadside Assistance,Email,Resolved,2025-04-05,The Honda Civic won't start after our overnight stop (reservation #N/A). Need roadside support ASAP.
+89,83,1062,Booking Change,Chat,Escalated,2024-01-07,"Can I change the return branch for reservation #1062? Let me know what's possible, thanks - Jennifer Huynh."
+90,84,,Roadside Assistance,Email,Open,2025-05-18,"We have a flat tire with the Jeep Grand Cherokee from reservation #N/A, currently stopped safely. Please send help, call 001-592-570-6537x947."
+91,192,157,Refund Request,Email,Escalated,2025-01-06,Requesting a refund for reservation #157 since we had to cancel due to a flight delay. Email is angela18@example.org.
+92,122,743,Roadside Assistance,Phone,Resolved,2024-08-08,"We have a flat tire with the Mercedes C-Class from reservation #743, currently stopped safely. Please send help, call 812-247-8261x3750."
+93,331,59,Booking Change,Email,In Progress,2025-05-20,I need to extend reservation #59 by two days. Please confirm availability and email me at ihorton@example.net.
+94,162,430,Damage Claim,Chat,Open,2025-06-17,Filing a damage report for reservation #430 - a small scratch on the rear bumper of the Mercedes C-Class was already there at pickup.
+95,124,992,Vehicle Issue,Email,Open,2024-02-29,There's a strange rattling noise coming from the Jeep Grand Cherokee (reservation #992). Can I get a replacement vehicle?
+96,88,1052,Billing Question,Email,Resolved,2025-01-23,"Hi, this is James Hines. I was charged twice for reservation #1052. Please refund the duplicate charge. You can reach me at (218)851-8888 or ywilliams@example.com."
+97,469,1368,Billing Question,Email,In Progress,2024-12-13,"Hi, this is Michelle Gregory. I was charged twice for reservation #1368. Please refund the duplicate charge. You can reach me at 705-415-3195x205 or epollard@example.net."
+98,281,720,Damage Claim,Email,Resolved,2024-09-17,Filing a damage report for reservation #720 - a small scratch on the rear bumper of the Honda Civic was already there at pickup.
+99,143,1752,Roadside Assistance,Phone,Open,2024-10-13,"We have a flat tire with the Honda Civic from reservation #1752, currently stopped safely. Please send help, call 8348505415."
+100,391,,Vehicle Issue,Email,Open,2025-08-07,"The Porsche 911 I picked up under reservation #N/A has a check-engine light on. Please advise, my contact number is (877)458-4161."
+101,472,,Vehicle Issue,Email,Escalated,2025-04-09,There's a strange rattling noise coming from the Honda Civic (reservation #N/A). Can I get a replacement vehicle?
+102,258,727,Vehicle Issue,Email,In Progress,2024-01-07,There's a strange rattling noise coming from the McLaren 720S (reservation #727). Can I get a replacement vehicle?
+103,368,644,Refund Request,Email,In Progress,2023-11-02,Requesting a refund for reservation #644 since we had to cancel due to a flight delay. Email is kimberly73@example.net.
+104,475,1444,General Feedback,Phone,Open,2024-11-09,"Suggestion: it would help to have a mobile check-in option, would have made reservation #1444 even faster."
+105,431,237,Vehicle Issue,Chat,Resolved,2024-08-16,There's a strange rattling noise coming from the Nissan Altima (reservation #237). Can I get a replacement vehicle?
+106,44,835,General Feedback,Email,Open,2023-09-08,"Suggestion: it would help to have a mobile check-in option, would have made reservation #835 even faster."
+107,189,,General Feedback,Chat,Escalated,2025-03-31,"Suggestion: it would help to have a mobile check-in option, would have made reservation #N/A even faster."
+108,148,809,Vehicle Issue,Email,In Progress,2024-04-17,There's a strange rattling noise coming from the Jeep Grand Cherokee (reservation #809). Can I get a replacement vehicle?
+109,247,408,Vehicle Issue,Phone,Escalated,2025-07-25,There's a strange rattling noise coming from the Ford Escape (reservation #408). Can I get a replacement vehicle?
+110,422,870,Vehicle Issue,Phone,Resolved,2025-03-10,There's a strange rattling noise coming from the Mercedes C-Class (reservation #870). Can I get a replacement vehicle?
+111,320,1366,Refund Request,Phone,Resolved,2023-10-12,"The Ford Escape we received didn't match what we booked, requesting partial refund for reservation #1366."
+112,167,222,Booking Change,Chat,Escalated,2024-06-27,I need to extend reservation #222 by two days. Please confirm availability and email me at zjohnson@example.net.
+113,441,276,Damage Claim,Phone,Open,2024-08-04,Filing a damage report for reservation #276 - a small scratch on the rear bumper of the McLaren 720S was already there at pickup.
+114,470,55,Vehicle Issue,Phone,Resolved,2024-06-22,"The Chevrolet Camaro I picked up under reservation #55 has a check-engine light on. Please advise, my contact number is (365)806-0983x584."
+115,429,1277,Booking Change,Phone,Escalated,2024-08-09,I need to extend reservation #1277 by two days. Please confirm availability and email me at williamsjennifer@example.com.
+116,112,1356,General Feedback,Phone,Resolved,2025-04-14,"Suggestion: it would help to have a mobile check-in option, would have made reservation #1356 even faster."
+117,277,,Roadside Assistance,Chat,Escalated,2025-06-01,"We have a flat tire with the Toyota Corolla from reservation #N/A, currently stopped safely. Please send help, call +1-916-494-0974x99309."
+118,227,,Roadside Assistance,Phone,Resolved,2025-08-19,"We have a flat tire with the Nissan Altima from reservation #N/A, currently stopped safely. Please send help, call 8915307562."
+119,441,276,Booking Change,Chat,Open,2024-08-13,"Can I change the return branch for reservation #276? Let me know what's possible, thanks - Joshua Durham."
+120,138,1404,General Feedback,Phone,In Progress,2024-11-18,"Suggestion: it would help to have a mobile check-in option, would have made reservation #1404 even faster."
+121,317,1014,Billing Question,Phone,Resolved,2024-11-20,I don't recognize a charge on my card related to reservation #1014. Can someone call me back at (624)604-1574x733?
+122,326,58,Account Access,Chat,Resolved,2023-08-24,"I can't log into my Avelto account anymore, my registered email is adampierce@example.org. Can you help me reset access?"
+123,49,1281,Billing Question,Email,Escalated,2024-10-13,I don't recognize a charge on my card related to reservation #1281. Can someone call me back at (877)434-5401x93802?
+124,211,,Roadside Assistance,Phone,Resolved,2025-07-22,"We have a flat tire with the Jeep Grand Cherokee from reservation #N/A, currently stopped safely. Please send help, call (640)904-9915."
+125,34,,Vehicle Issue,Phone,Resolved,2025-08-04,There's a strange rattling noise coming from the Ford Escape (reservation #N/A). Can I get a replacement vehicle?
+126,73,1769,Billing Question,Phone,Escalated,2024-01-25,I don't recognize a charge on my card related to reservation #1769. Can someone call me back at 661-822-7530?
+127,346,962,Account Access,Chat,Escalated,2023-12-21,"I can't log into my Avelto account anymore, my registered email is michael33@example.org. Can you help me reset access?"
+128,394,1656,Roadside Assistance,Phone,In Progress,2023-09-10,The Ford Mustang won't start after our overnight stop (reservation #1656). Need roadside support ASAP.
+129,225,1662,Roadside Assistance,Phone,Resolved,2024-04-12,The Toyota Corolla won't start after our overnight stop (reservation #1662). Need roadside support ASAP.
+130,104,,Roadside Assistance,Email,Resolved,2025-07-13,"We have a flat tire with the Honda Civic from reservation #N/A, currently stopped safely. Please send help, call 001-508-374-0640."
+131,320,,Refund Request,Chat,Open,2025-04-28,Requesting a refund for reservation #N/A since we had to cancel due to a flight delay. Email is ykane@example.com.
+132,385,712,General Feedback,Chat,Resolved,2024-08-26,"Just wanted to say the pickup experience for reservation #712 was smooth, great job by the Andersonshire Branch team!"
+133,350,642,Refund Request,Chat,Resolved,2025-04-27,Requesting a refund for reservation #642 since we had to cancel due to a flight delay. Email is jamiegarcia@example.org.
+134,230,1122,General Feedback,Phone,In Progress,2024-07-21,"Just wanted to say the pickup experience for reservation #1122 was smooth, great job by the Juarezview Branch team!"
+135,473,1971,General Feedback,Phone,Escalated,2024-01-14,"Suggestion: it would help to have a mobile check-in option, would have made reservation #1971 even faster."
+136,314,747,Billing Question,Email,In Progress,2024-03-25,I don't recognize a charge on my card related to reservation #747. Can someone call me back at +1-668-456-6246x28733?
+137,211,,Account Access,Chat,In Progress,2025-06-11,"I can't log into my Avelto account anymore, my registered email is nicholas99@example.org. Can you help me reset access?"
+138,30,484,Account Access,Email,In Progress,2023-10-18,"My driver's license on file is expired, I uploaded a new one - can someone confirm it's been updated? - Stephanie Lopez"
+139,189,1633,Damage Claim,Chat,Escalated,2024-08-13,We were involved in a minor parking-lot incident during reservation #1633. Please send the claim form to jose87@example.com.
+140,459,76,Refund Request,Chat,In Progress,2024-01-29,Requesting a refund for reservation #76 since we had to cancel due to a flight delay. Email is greensarah@example.net.
+141,376,1646,Billing Question,Email,Open,2025-02-21,I don't recognize a charge on my card related to reservation #1646. Can someone call me back at 001-664-923-5369x3785?
+142,374,114,General Feedback,Phone,Resolved,2024-10-03,"Just wanted to say the pickup experience for reservation #114 was smooth, great job by the Andersonshire Branch team!"
+143,209,,Vehicle Issue,Email,Open,2025-08-19,There's a strange rattling noise coming from the Nissan Altima (reservation #N/A). Can I get a replacement vehicle?
+144,466,185,Account Access,Email,Resolved,2024-12-13,"I can't log into my Avelto account anymore, my registered email is johnharvey@example.com. Can you help me reset access?"
+145,378,,Roadside Assistance,Email,In Progress,2025-07-27,The Ford Escape won't start after our overnight stop (reservation #N/A). Need roadside support ASAP.
+146,226,,Damage Claim,Chat,Open,2025-05-31,Filing a damage report for reservation #N/A - a small scratch on the rear bumper of the BMW 3 Series was already there at pickup.
+147,196,973,Roadside Assistance,Email,Resolved,2025-02-09,"We have a flat tire with the Ford Escape from reservation #973, currently stopped safely. Please send help, call 440.814.8902x5039."
+148,117,1683,General Feedback,Phone,Open,2024-06-07,"Suggestion: it would help to have a mobile check-in option, would have made reservation #1683 even faster."
+149,53,1616,Billing Question,Phone,Escalated,2025-04-17,"Hi, this is Bryan Cameron. I was charged twice for reservation #1616. Please refund the duplicate charge. You can reach me at 658.566.2961 or millereric@example.net."
+150,232,1435,Account Access,Phone,In Progress,2024-07-19,"My driver's license on file is expired, I uploaded a new one - can someone confirm it's been updated? - Mason Phillips"
+151,16,1864,General Feedback,Chat,Open,2024-02-29,"Suggestion: it would help to have a mobile check-in option, would have made reservation #1864 even faster."
+152,304,1761,Damage Claim,Phone,Resolved,2024-01-18,Filing a damage report for reservation #1761 - a small scratch on the rear bumper of the Ford Mustang was already there at pickup.
+153,256,562,Refund Request,Chat,Escalated,2025-03-02,Requesting a refund for reservation #562 since we had to cancel due to a flight delay. Email is vbrock@example.com.
+154,62,1796,Roadside Assistance,Phone,Resolved,2024-05-14,"We have a flat tire with the Toyota Corolla from reservation #1796, currently stopped safely. Please send help, call 969-524-5937x52654."
+155,70,1234,Vehicle Issue,Phone,Open,2024-06-09,There's a strange rattling noise coming from the Honda Civic (reservation #1234). Can I get a replacement vehicle?
+156,310,377,Billing Question,Email,Open,2025-05-31,I don't recognize a charge on my card related to reservation #377. Can someone call me back at +1-872-843-4266x17979?
+157,274,626,Refund Request,Email,Open,2024-11-08,"The McLaren 720S we received didn't match what we booked, requesting partial refund for reservation #626."
+158,92,1462,Booking Change,Phone,Escalated,2025-08-23,I need to extend reservation #1462 by two days. Please confirm availability and email me at webbkenneth@example.org.
+159,195,1789,Roadside Assistance,Email,Resolved,2025-03-26,"We have a flat tire with the Nissan Altima from reservation #1789, currently stopped safely. Please send help, call 725-945-7387."
+160,73,849,Account Access,Chat,Escalated,2025-02-02,"My driver's license on file is expired, I uploaded a new one - can someone confirm it's been updated? - Daniel Floyd"
+161,103,48,Damage Claim,Chat,In Progress,2024-11-15,Filing a damage report for reservation #48 - a small scratch on the rear bumper of the Ford Escape was already there at pickup.
+162,492,346,Account Access,Phone,Escalated,2024-07-27,"I can't log into my Avelto account anymore, my registered email is wmatthews@example.com. Can you help me reset access?"
+163,95,1963,Account Access,Phone,Open,2025-04-20,"My driver's license on file is expired, I uploaded a new one - can someone confirm it's been updated? - Shelley Washington"
+164,216,892,Billing Question,Email,In Progress,2023-10-27,I don't recognize a charge on my card related to reservation #892. Can someone call me back at +1-629-466-2782x827?
+165,485,1766,Damage Claim,Phone,Escalated,2024-09-13,We were involved in a minor parking-lot incident during reservation #1766. Please send the claim form to christopherjohnson@example.org.
+166,439,1754,Refund Request,Email,Resolved,2024-05-28,Requesting a refund for reservation #1754 since we had to cancel due to a flight delay. Email is amber07@example.net.
+167,59,837,Damage Claim,Chat,Resolved,2025-04-01,Filing a damage report for reservation #837 - a small scratch on the rear bumper of the Mercedes C-Class was already there at pickup.
+168,432,1859,Damage Claim,Phone,Escalated,2024-02-27,Filing a damage report for reservation #1859 - a small scratch on the rear bumper of the McLaren 720S was already there at pickup.
+169,23,273,Vehicle Issue,Phone,In Progress,2023-11-02,There's a strange rattling noise coming from the Toyota Corolla (reservation #273). Can I get a replacement vehicle?
+170,78,1508,Refund Request,Email,Open,2024-09-27,"The Toyota Corolla we received didn't match what we booked, requesting partial refund for reservation #1508."
+171,151,481,Billing Question,Phone,Open,2025-05-12,I don't recognize a charge on my card related to reservation #481. Can someone call me back at 5179518636?
+172,108,1270,Billing Question,Chat,Resolved,2024-12-13,I don't recognize a charge on my card related to reservation #1270. Can someone call me back at 001-229-375-0017?
+173,287,,Booking Change,Phone,Escalated,2025-07-17,I need to extend reservation #N/A by two days. Please confirm availability and email me at sanderskevin@example.net.
+174,68,,Roadside Assistance,Email,Resolved,2025-08-19,The Toyota Corolla won't start after our overnight stop (reservation #N/A). Need roadside support ASAP.
+175,256,,Billing Question,Phone,Resolved,2025-07-14,I don't recognize a charge on my card related to reservation #N/A. Can someone call me back at 436-811-1554?
+176,146,338,Roadside Assistance,Email,Escalated,2023-10-22,The Ferrari 488 won't start after our overnight stop (reservation #338). Need roadside support ASAP.
+177,319,112,Billing Question,Email,Escalated,2023-11-14,"Hi, this is Kimberly Smith. I was charged twice for reservation #112. Please refund the duplicate charge. You can reach me at 523-841-3899x94043 or debbie37@example.com."
+178,487,957,Account Access,Chat,Open,2024-05-01,"My driver's license on file is expired, I uploaded a new one - can someone confirm it's been updated? - Brittany Martinez"
+179,499,1453,General Feedback,Chat,Open,2025-03-10,"Suggestion: it would help to have a mobile check-in option, would have made reservation #1453 even faster."
+180,81,192,Booking Change,Email,In Progress,2025-08-01,I need to extend reservation #192 by two days. Please confirm availability and email me at pblair@example.org.
+181,138,1359,Account Access,Email,In Progress,2024-05-18,"I can't log into my Avelto account anymore, my registered email is zimmermanjacqueline@example.org. Can you help me reset access?"
+182,127,,Refund Request,Chat,Open,2025-06-24,Requesting a refund for reservation #N/A since we had to cancel due to a flight delay. Email is jennifer91@example.com.
+183,54,1903,Refund Request,Email,Open,2025-02-04,Requesting a refund for reservation #1903 since we had to cancel due to a flight delay. Email is williamsmichelle@example.org.
+184,446,1450,Vehicle Issue,Phone,Resolved,2024-08-29,There's a strange rattling noise coming from the Ford Escape (reservation #1450). Can I get a replacement vehicle?
+185,330,90,Billing Question,Phone,In Progress,2025-06-27,I don't recognize a charge on my card related to reservation #90. Can someone call me back at 295-818-0238?
+186,411,,Damage Claim,Phone,Escalated,2025-09-04,We were involved in a minor parking-lot incident during reservation #N/A. Please send the claim form to edwardrandolph@example.org.
+187,181,365,Vehicle Issue,Email,Open,2025-04-18,"The Mercedes C-Class I picked up under reservation #365 has a check-engine light on. Please advise, my contact number is 585.505.0641."
+188,120,1597,Damage Claim,Phone,In Progress,2024-06-15,We were involved in a minor parking-lot incident during reservation #1597. Please send the claim form to vargasbryan@example.net.
+189,237,1641,Vehicle Issue,Phone,In Progress,2025-03-21,There's a strange rattling noise coming from the Ford Escape (reservation #1641). Can I get a replacement vehicle?
+190,397,1705,Roadside Assistance,Email,Escalated,2023-08-27,The Ferrari 488 won't start after our overnight stop (reservation #1705). Need roadside support ASAP.
+191,244,,General Feedback,Chat,In Progress,2025-09-06,"Suggestion: it would help to have a mobile check-in option, would have made reservation #N/A even faster."
+192,482,191,Refund Request,Chat,Escalated,2023-08-28,Requesting a refund for reservation #191 since we had to cancel due to a flight delay. Email is greertoni@example.org.
+193,92,1462,Damage Claim,Phone,Open,2025-08-19,Filing a damage report for reservation #1462 - a small scratch on the rear bumper of the Ferrari 488 was already there at pickup.
+194,245,163,Account Access,Email,In Progress,2024-10-12,"My driver's license on file is expired, I uploaded a new one - can someone confirm it's been updated? - Micheal Oneal"
+195,268,,Account Access,Email,Open,2025-04-30,"I can't log into my Avelto account anymore, my registered email is ramirezderrick@example.org. Can you help me reset access?"
+196,270,952,Refund Request,Chat,Open,2024-10-05,"The McLaren 720S we received didn't match what we booked, requesting partial refund for reservation #952."
+197,392,1355,Billing Question,Email,Escalated,2024-10-22,I don't recognize a charge on my card related to reservation #1355. Can someone call me back at 3405785932?
+198,62,1796,Billing Question,Phone,Escalated,2024-05-19,I don't recognize a charge on my card related to reservation #1796. Can someone call me back at 7397652239?
+199,22,543,General Feedback,Email,In Progress,2024-02-20,"Suggestion: it would help to have a mobile check-in option, would have made reservation #543 even faster."
+200,326,1238,Vehicle Issue,Chat,Open,2025-01-29,There's a strange rattling noise coming from the Jeep Grand Cherokee (reservation #1238). Can I get a replacement vehicle?
+201,342,28,Billing Question,Chat,Escalated,2024-04-18,"Hi, this is Robin Parker. I was charged twice for reservation #28. Please refund the duplicate charge. You can reach me at 454-752-2675 or elizabetholsen@example.com."
+202,495,,Refund Request,Phone,Resolved,2025-07-20,"The Ford Mustang we received didn't match what we booked, requesting partial refund for reservation #N/A."
+203,45,,Refund Request,Email,In Progress,2025-08-02,Requesting a refund for reservation #N/A since we had to cancel due to a flight delay. Email is bellkristin@example.net.
+204,246,1329,Billing Question,Email,Escalated,2025-03-08,"Hi, this is Angela Jackson. I was charged twice for reservation #1329. Please refund the duplicate charge. You can reach me at 7068762676 or poolekristina@example.net."
+205,341,1577,Damage Claim,Chat,Escalated,2025-07-22,We were involved in a minor parking-lot incident during reservation #1577. Please send the claim form to jessicapayne@example.org.
+206,400,1849,Billing Question,Chat,Escalated,2024-05-09,"Hi, this is Diana Young. I was charged twice for reservation #1849. Please refund the duplicate charge. You can reach me at 599-870-6296x20153 or donna43@example.org."
+207,300,,Billing Question,Email,Resolved,2025-05-06,I don't recognize a charge on my card related to reservation #N/A. Can someone call me back at 8693872050?
+208,112,1736,Billing Question,Chat,Resolved,2025-03-14,I don't recognize a charge on my card related to reservation #1736. Can someone call me back at 803-924-1714?
+209,404,996,Billing Question,Phone,Open,2024-07-16,I don't recognize a charge on my card related to reservation #996. Can someone call me back at +1-686-525-6527x0477?
+210,114,647,Billing Question,Phone,Escalated,2023-11-04,"Hi, this is Toni Garcia. I was charged twice for reservation #647. Please refund the duplicate charge. You can reach me at +1-558-969-3806x86879 or christian08@example.net."
+211,332,1276,General Feedback,Phone,Escalated,2024-03-20,"Suggestion: it would help to have a mobile check-in option, would have made reservation #1276 even faster."
+212,146,1488,Billing Question,Chat,Escalated,2024-03-24,"Hi, this is Deborah Duran. I was charged twice for reservation #1488. Please refund the duplicate charge. You can reach me at 916-286-8548 or jrodriguez@example.org."
+213,337,1204,Damage Claim,Phone,Escalated,2024-09-22,We were involved in a minor parking-lot incident during reservation #1204. Please send the claim form to patrick79@example.net.
+214,371,,Booking Change,Phone,Resolved,2025-04-17,"Can I change the return branch for reservation #N/A? Let me know what's possible, thanks - John Gonzalez."
+215,452,1730,General Feedback,Email,Resolved,2025-01-23,"Just wanted to say the pickup experience for reservation #1730 was smooth, great job by the Jordanville Branch team!"
+216,202,265,Vehicle Issue,Email,Escalated,2023-11-10,"The Nissan Altima I picked up under reservation #265 has a check-engine light on. Please advise, my contact number is 001-485-508-2148x62890."
+217,395,1932,Vehicle Issue,Email,In Progress,2023-11-25,There's a strange rattling noise coming from the BMW 3 Series (reservation #1932). Can I get a replacement vehicle?
+218,184,,Billing Question,Email,Open,2025-08-19,"Hi, this is Mikayla Smith. I was charged twice for reservation #N/A. Please refund the duplicate charge. You can reach me at 001-885-252-4140 or melissachan@example.org."
+219,165,1265,Roadside Assistance,Phone,In Progress,2024-02-08,"We have a flat tire with the Jeep Grand Cherokee from reservation #1265, currently stopped safely. Please send help, call 433.446.8007."
+220,331,697,General Feedback,Phone,Resolved,2023-08-22,"Suggestion: it would help to have a mobile check-in option, would have made reservation #697 even faster."
+221,448,,Booking Change,Chat,Escalated,2025-03-21,I need to extend reservation #N/A by two days. Please confirm availability and email me at jose43@example.org.
+222,401,,Vehicle Issue,Phone,Open,2025-04-27,"The Toyota Corolla I picked up under reservation #N/A has a check-engine light on. Please advise, my contact number is 230.596.5207x44666."
+223,436,1784,Booking Change,Email,Resolved,2024-03-20,I need to extend reservation #1784 by two days. Please confirm availability and email me at walkerjeffrey@example.com.
+224,6,1021,General Feedback,Phone,Resolved,2023-09-20,"Just wanted to say the pickup experience for reservation #1021 was smooth, great job by the West Kristinaside Branch team!"
+225,63,,Roadside Assistance,Chat,Resolved,2025-09-22,The Jeep Grand Cherokee won't start after our overnight stop (reservation #N/A). Need roadside support ASAP.
+226,213,175,Account Access,Phone,Escalated,2023-12-07,"My driver's license on file is expired, I uploaded a new one - can someone confirm it's been updated? - Kristina Johnson"
+227,55,503,Roadside Assistance,Chat,In Progress,2024-11-10,"We have a flat tire with the Nissan Altima from reservation #503, currently stopped safely. Please send help, call 2835505830."
+228,212,,Booking Change,Email,Open,2025-09-23,"Can I change the return branch for reservation #N/A? Let me know what's possible, thanks - Robert Meyer."
+229,365,645,Vehicle Issue,Chat,Open,2023-11-27,There's a strange rattling noise coming from the Porsche 911 (reservation #645). Can I get a replacement vehicle?
+230,116,1353,Refund Request,Email,Resolved,2024-05-26,Requesting a refund for reservation #1353 since we had to cancel due to a flight delay. Email is thomas23@example.net.
+231,238,1395,Refund Request,Chat,Open,2024-04-04,"The Mercedes C-Class we received didn't match what we booked, requesting partial refund for reservation #1395."
+232,313,,Account Access,Phone,Escalated,2025-04-11,"My driver's license on file is expired, I uploaded a new one - can someone confirm it's been updated? - Jonathan Colon"
+233,401,,Roadside Assistance,Email,Resolved,2025-07-03,"We have a flat tire with the Jeep Grand Cherokee from reservation #N/A, currently stopped safely. Please send help, call +1-611-997-2181x14374."
+234,215,1516,Refund Request,Phone,Resolved,2025-08-10,Requesting a refund for reservation #1516 since we had to cancel due to a flight delay. Email is lisa21@example.com.
+235,46,1131,Damage Claim,Chat,In Progress,2025-06-15,We were involved in a minor parking-lot incident during reservation #1131. Please send the claim form to cherylmaxwell@example.net.
+236,129,1632,Billing Question,Chat,Escalated,2023-09-19,I don't recognize a charge on my card related to reservation #1632. Can someone call me back at 6277716701?
+237,320,1724,Vehicle Issue,Phone,Resolved,2025-03-16,There's a strange rattling noise coming from the Ford Mustang (reservation #1724). Can I get a replacement vehicle?
+238,19,1334,Vehicle Issue,Chat,Open,2024-01-01,"The Porsche 911 I picked up under reservation #1334 has a check-engine light on. Please advise, my contact number is +1-700-628-7721x753."
+239,30,484,General Feedback,Chat,Resolved,2023-10-22,"Just wanted to say the pickup experience for reservation #484 was smooth, great job by the Juarezview Branch team!"
+240,84,1065,Booking Change,Chat,In Progress,2024-12-19,I need to extend reservation #1065 by two days. Please confirm availability and email me at velasquezmegan@example.com.
+241,500,301,Roadside Assistance,Email,Open,2025-02-20,The Toyota Corolla won't start after our overnight stop (reservation #301). Need roadside support ASAP.
+242,349,267,Billing Question,Chat,Open,2025-03-19,I don't recognize a charge on my card related to reservation #267. Can someone call me back at (310)827-2614x933?
+243,407,825,Roadside Assistance,Phone,Escalated,2024-08-08,The Toyota Corolla won't start after our overnight stop (reservation #825). Need roadside support ASAP.
+244,353,,Refund Request,Email,Escalated,2025-08-27,Requesting a refund for reservation #N/A since we had to cancel due to a flight delay. Email is sstuart@example.com.
+245,293,1443,General Feedback,Chat,Escalated,2025-08-05,"Just wanted to say the pickup experience for reservation #1443 was smooth, great job by the West Kristinaside Branch team!"
+246,25,1934,Billing Question,Phone,Escalated,2024-07-12,I don't recognize a charge on my card related to reservation #1934. Can someone call me back at +1-622-888-5158x79968?
+247,177,1171,Vehicle Issue,Phone,In Progress,2025-06-09,There's a strange rattling noise coming from the Chevrolet Camaro (reservation #1171). Can I get a replacement vehicle?
+248,489,767,Vehicle Issue,Chat,Open,2025-08-04,There's a strange rattling noise coming from the Chevrolet Camaro (reservation #767). Can I get a replacement vehicle?
+249,215,1208,Booking Change,Chat,Resolved,2025-08-05,"Can I change the return branch for reservation #1208? Let me know what's possible, thanks - Jennifer Moore."
+250,169,1515,Damage Claim,Email,Resolved,2024-06-02,We were involved in a minor parking-lot incident during reservation #1515. Please send the claim form to jtyler@example.com.
+251,214,,Vehicle Issue,Chat,Escalated,2025-05-09,There's a strange rattling noise coming from the Nissan Altima (reservation #N/A). Can I get a replacement vehicle?
+252,427,,General Feedback,Chat,Escalated,2025-05-30,"Just wanted to say the pickup experience for reservation #N/A was smooth, great job by the West Kristinaside Branch team!"
+253,3,1491,General Feedback,Phone,Escalated,2023-11-20,"Suggestion: it would help to have a mobile check-in option, would have made reservation #1491 even faster."
+254,351,810,Refund Request,Email,Escalated,2023-12-01,"The Jeep Grand Cherokee we received didn't match what we booked, requesting partial refund for reservation #810."
+255,299,1774,Account Access,Phone,Resolved,2024-08-26,"I can't log into my Avelto account anymore, my registered email is zhayes@example.com. Can you help me reset access?"
+256,213,175,Vehicle Issue,Phone,Open,2023-12-15,"The BMW 3 Series I picked up under reservation #175 has a check-engine light on. Please advise, my contact number is 606-618-0919x01581."
+257,45,1030,Damage Claim,Phone,In Progress,2025-06-11,Filing a damage report for reservation #1030 - a small scratch on the rear bumper of the Honda Civic was already there at pickup.
+258,95,422,Billing Question,Chat,Open,2025-01-18,"Hi, this is Shelley Washington. I was charged twice for reservation #422. Please refund the duplicate charge. You can reach me at +1-481-443-5368 or jeffreydavenport@example.org."
+259,269,93,Roadside Assistance,Chat,Escalated,2025-02-18,The Toyota Corolla won't start after our overnight stop (reservation #93). Need roadside support ASAP.
+260,304,1761,Booking Change,Chat,Open,2024-01-16,"Can I change the return branch for reservation #1761? Let me know what's possible, thanks - Michael Clark."
+261,278,,Vehicle Issue,Email,In Progress,2025-08-09,"The Porsche 911 I picked up under reservation #N/A has a check-engine light on. Please advise, my contact number is 333-464-5257x77547."
+262,348,,Account Access,Phone,Open,2025-08-01,"My driver's license on file is expired, I uploaded a new one - can someone confirm it's been updated? - Chad Gonzalez"
+263,233,656,Account Access,Chat,Resolved,2025-07-08,"I can't log into my Avelto account anymore, my registered email is melaniedrake@example.net. Can you help me reset access?"
+264,461,,Refund Request,Phone,In Progress,2025-08-05,Requesting a refund for reservation #N/A since we had to cancel due to a flight delay. Email is bakerjim@example.net.
+265,430,1034,General Feedback,Chat,Open,2025-04-13,"Suggestion: it would help to have a mobile check-in option, would have made reservation #1034 even faster."
+266,202,834,Roadside Assistance,Email,Escalated,2024-03-08,"We have a flat tire with the Ford Escape from reservation #834, currently stopped safely. Please send help, call +1-965-991-8463x8655."
+267,10,,Damage Claim,Phone,In Progress,2025-08-01,Filing a damage report for reservation #N/A - a small scratch on the rear bumper of the Mercedes C-Class was already there at pickup.
+268,363,914,Account Access,Phone,In Progress,2024-05-03,"I can't log into my Avelto account anymore, my registered email is macdonalddylan@example.org. Can you help me reset access?"
+269,494,345,Booking Change,Chat,Escalated,2024-07-18,I need to extend reservation #345 by two days. Please confirm availability and email me at jeffreyjenkins@example.org.
+270,270,952,Billing Question,Email,Open,2024-10-14,I don't recognize a charge on my card related to reservation #952. Can someone call me back at 001-329-584-2579?
+271,247,,Billing Question,Chat,In Progress,2025-04-07,I don't recognize a charge on my card related to reservation #N/A. Can someone call me back at 288.362.9127?
+272,299,1514,Account Access,Email,Escalated,2024-09-01,"I can't log into my Avelto account anymore, my registered email is zbell@example.net. Can you help me reset access?"
+273,372,,Vehicle Issue,Phone,Resolved,2025-08-13,There's a strange rattling noise coming from the Honda Civic (reservation #N/A). Can I get a replacement vehicle?
+274,426,1542,Roadside Assistance,Email,Resolved,2025-06-05,The Ford Mustang won't start after our overnight stop (reservation #1542). Need roadside support ASAP.
+275,389,1965,Roadside Assistance,Phone,In Progress,2024-11-08,The Ford Escape won't start after our overnight stop (reservation #1965). Need roadside support ASAP.
+276,318,9,Billing Question,Chat,Escalated,2024-06-24,"Hi, this is Katherine Vance. I was charged twice for reservation #9. Please refund the duplicate charge. You can reach me at 272.413.8658 or aoconnell@example.org."
+277,103,1613,Refund Request,Email,Escalated,2024-12-01,Requesting a refund for reservation #1613 since we had to cancel due to a flight delay. Email is zarias@example.net.
+278,138,1665,Vehicle Issue,Chat,Escalated,2024-08-07,There's a strange rattling noise coming from the BMW 3 Series (reservation #1665). Can I get a replacement vehicle?
+279,416,,Booking Change,Email,Escalated,2025-06-01,I need to extend reservation #N/A by two days. Please confirm availability and email me at calhounandrea@example.net.
+280,381,41,Billing Question,Email,Open,2024-07-30,I don't recognize a charge on my card related to reservation #41. Can someone call me back at +1-895-254-3937?
+281,114,,Account Access,Chat,In Progress,2025-09-15,"My driver's license on file is expired, I uploaded a new one - can someone confirm it's been updated? - Toni Garcia"
+282,87,1682,Billing Question,Chat,Escalated,2023-11-17,I don't recognize a charge on my card related to reservation #1682. Can someone call me back at 001-857-779-0714x16335?
+283,376,1352,Booking Change,Phone,In Progress,2023-12-15,I need to extend reservation #1352 by two days. Please confirm availability and email me at staceyvega@example.org.
+284,372,1912,Vehicle Issue,Phone,Resolved,2024-01-14,"The Porsche 911 I picked up under reservation #1912 has a check-engine light on. Please advise, my contact number is 333.334.3333x9521."
+285,12,,Damage Claim,Chat,Open,2025-04-12,We were involved in a minor parking-lot incident during reservation #N/A. Please send the claim form to kwalker@example.org.
+286,395,1932,Refund Request,Chat,Escalated,2023-11-26,Requesting a refund for reservation #1932 since we had to cancel due to a flight delay. Email is wolfesteve@example.net.
+287,83,1062,Account Access,Chat,Open,2024-01-11,"My driver's license on file is expired, I uploaded a new one - can someone confirm it's been updated? - Jennifer Huynh"
+288,380,1881,Damage Claim,Chat,Resolved,2025-07-22,We were involved in a minor parking-lot incident during reservation #1881. Please send the claim form to lelinda@example.net.
+289,168,686,Billing Question,Email,In Progress,2025-02-09,"Hi, this is Jacob Walker. I was charged twice for reservation #686. Please refund the duplicate charge. You can reach me at (963)622-7026x72885 or anna90@example.com."
+290,470,,Refund Request,Email,Open,2025-07-03,Requesting a refund for reservation #N/A since we had to cancel due to a flight delay. Email is ann45@example.org.
+291,128,1655,Billing Question,Phone,Resolved,2024-06-06,"Hi, this is Jonathan Lee. I was charged twice for reservation #1655. Please refund the duplicate charge. You can reach me at (915)393-9982x45587 or daustin@example.net."
+292,304,970,Account Access,Email,Resolved,2025-02-05,"I can't log into my Avelto account anymore, my registered email is lawrencedelgado@example.net. Can you help me reset access?"
+293,398,,Damage Claim,Chat,Open,2025-09-12,We were involved in a minor parking-lot incident during reservation #N/A. Please send the claim form to ebonyshepard@example.net.
+294,470,,Vehicle Issue,Email,Open,2025-03-25,There's a strange rattling noise coming from the Ford Escape (reservation #N/A). Can I get a replacement vehicle?
+295,32,1251,General Feedback,Email,Open,2024-05-19,"Suggestion: it would help to have a mobile check-in option, would have made reservation #1251 even faster."
+296,138,782,Billing Question,Phone,Escalated,2023-10-10,I don't recognize a charge on my card related to reservation #782. Can someone call me back at +1-872-682-9979?
+297,404,,Damage Claim,Chat,Escalated,2025-06-04,Filing a damage report for reservation #N/A - a small scratch on the rear bumper of the Jeep Grand Cherokee was already there at pickup.
+298,424,1921,Vehicle Issue,Phone,Resolved,2023-10-25,"The Ford Escape I picked up under reservation #1921 has a check-engine light on. Please advise, my contact number is 893-808-5368x6632."
+299,279,26,Damage Claim,Email,In Progress,2024-10-20,Filing a damage report for reservation #26 - a small scratch on the rear bumper of the Chevrolet Camaro was already there at pickup.
+300,197,986,Account Access,Email,In Progress,2024-02-07,"My driver's license on file is expired, I uploaded a new one - can someone confirm it's been updated? - Michael Gonzalez"
