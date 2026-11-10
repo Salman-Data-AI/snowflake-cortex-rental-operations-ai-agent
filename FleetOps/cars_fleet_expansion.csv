@@ -1,0 +1,6 @@
+SUPERSEDED — see canonical file instead.
+
+The 10 Convertible pilot units are now included directly in Avelto Rentals/OLTP model/cars.csv (ids 201-210) and mirrored in Medallion/Bronze/FleetOps/cars.csv. This file documented the original addition and is kept for changelog purposes only.
+
+This file is kept only so nothing gets silently deleted. Its old contents (pre country/currency/availability revision)
+are no longer accurate and should not be used.

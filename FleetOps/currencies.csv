@@ -1,0 +1,7 @@
+currency_code,currency_name,symbol,usd_exchange_rate,decimals
+USD,US Dollar,$,1.0,2
+CAD,Canadian Dollar,CA$,0.72,2
+EUR,Euro,€,1.08,2
+GBP,British Pound,£,1.27,2
+JPY,Japanese Yen,¥,0.0067,0
+AUD,Australian Dollar,A$,0.65,2

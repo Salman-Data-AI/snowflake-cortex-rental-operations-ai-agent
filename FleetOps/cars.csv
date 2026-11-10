@@ -1,0 +1,211 @@
+id,license_plate,model,year,category_id,current_branch_id
+1,Q7804V,Ford Mustang,2020,5,10
+2,W6223W,Ferrari 488,2019,5,9
+3,Z6712K,McLaren 720S,2023,5,3
+4,E5349R,Porsche 911,2023,4,8
+5,M1462I,Chevrolet Camaro,2015,5,8
+6,V1590B,Toyota Corolla,2016,1,6
+7,U4442M,Honda Civic,2018,2,3
+8,H4217Z,Nissan Altima,2017,1,6
+9,T8230J,Ford Escape,2021,3,4
+10,V7156T,Jeep Grand Cherokee,2015,3,3
+11,E3385Y,BMW 3 Series,2019,4,9
+12,S9457Q,Mercedes C-Class,2018,4,1
+13,T5361Q,McLaren 720S,2021,5,2
+14,J5995A,Ford Escape,2024,3,2
+15,N9341F,Jeep Grand Cherokee,2024,3,10
+16,K1044T,Honda Civic,2024,2,5
+17,O2805O,Ford Mustang,2015,5,10
+18,Y9741P,Chevrolet Camaro,2023,5,9
+19,X8661K,Mercedes C-Class,2019,4,9
+20,W6726Y,Nissan Altima,2021,1,6
+21,X9790E,Honda Civic,2017,2,3
+22,X6860A,Mercedes C-Class,2022,4,4
+23,X7709O,Toyota Corolla,2024,1,6
+24,O1814B,Ferrari 488,2017,5,7
+25,S3864W,Ford Escape,2020,3,5
+26,A3214C,BMW 3 Series,2021,4,3
+27,Y5520P,Jeep Grand Cherokee,2018,3,2
+28,R2815F,Toyota Corolla,2017,1,5
+29,C4715G,Nissan Altima,2024,1,2
+30,A1996N,McLaren 720S,2016,5,1
+31,U3389P,Jeep Grand Cherokee,2024,3,7
+32,G5841A,BMW 3 Series,2018,4,2
+33,W9481J,Toyota Corolla,2022,1,4
+34,Q2290O,Toyota Corolla,2023,1,10
+35,S3731F,Ford Escape,2019,3,9
+36,J6402Y,BMW 3 Series,2017,4,4
+37,U8537K,Mercedes C-Class,2019,4,9
+38,Q1781H,Mercedes C-Class,2017,4,3
+39,M1098P,Mercedes C-Class,2019,4,2
+40,J5986B,Ford Escape,2022,3,8
+41,C5119A,Toyota Corolla,2024,1,7
+42,S6805D,BMW 3 Series,2024,4,8
+43,A1489Q,BMW 3 Series,2022,4,6
+44,F8032S,Porsche 911,2023,4,3
+45,T8938B,McLaren 720S,2018,5,6
+46,E1350X,Nissan Altima,2022,1,8
+47,J3377R,McLaren 720S,2017,5,5
+48,L2378V,Mercedes C-Class,2022,4,10
+49,E3827L,Toyota Corolla,2016,1,2
+50,K3233C,Ford Mustang,2019,5,7
+51,X4894G,Porsche 911,2015,4,1
+52,G6834M,Jeep Grand Cherokee,2020,3,3
+53,G6272N,Porsche 911,2018,4,7
+54,E6472I,Mercedes C-Class,2017,4,10
+55,I4919D,Jeep Grand Cherokee,2021,3,10
+56,S9696P,BMW 3 Series,2019,4,7
+57,J5859R,Mercedes C-Class,2017,4,4
+58,P4017M,Toyota Corolla,2023,1,3
+59,L9039K,Porsche 911,2020,4,6
+60,Y9306C,Honda Civic,2024,2,7
+61,A1561H,Honda Civic,2018,2,4
+62,X6172K,BMW 3 Series,2021,4,4
+63,C6162V,Nissan Altima,2019,1,3
+64,S7482L,Jeep Grand Cherokee,2023,3,3
+65,A6463K,McLaren 720S,2016,5,7
+66,J2347L,Honda Civic,2019,2,10
+67,E1368G,Toyota Corolla,2023,1,1
+68,X8696V,Jeep Grand Cherokee,2020,3,6
+69,Q2763N,Mercedes C-Class,2024,4,1
+70,U1488Q,Mercedes C-Class,2015,4,10
+71,A3629A,Nissan Altima,2016,1,6
+72,Z2922R,Toyota Corolla,2022,1,8
+73,E5882N,Chevrolet Camaro,2022,5,3
+74,T2252R,Honda Civic,2015,2,9
+75,H1570B,Honda Civic,2024,2,6
+76,X9758J,Ford Escape,2022,3,9
+77,K1095E,Toyota Corolla,2020,1,10
+78,K1545C,Ferrari 488,2017,5,8
+79,P7630T,Ford Escape,2017,3,7
+80,T7969D,Mercedes C-Class,2024,4,6
+81,B1413K,BMW 3 Series,2015,4,10
+82,L2415D,BMW 3 Series,2016,4,8
+83,C8407H,Porsche 911,2015,4,5
+84,T8888C,Ford Mustang,2016,5,4
+85,T5416T,Toyota Corolla,2019,1,7
+86,C6609I,Jeep Grand Cherokee,2021,3,1
+87,A9469V,Nissan Altima,2024,1,2
+88,Z4142P,McLaren 720S,2023,5,5
+89,X9628U,Ferrari 488,2015,5,1
+90,V9343G,Jeep Grand Cherokee,2022,3,5
+91,S9166B,Jeep Grand Cherokee,2020,3,2
+92,H6083D,Chevrolet Camaro,2023,5,10
+93,G8428H,McLaren 720S,2022,5,2
+94,J7776V,Nissan Altima,2016,1,1
+95,C8148M,BMW 3 Series,2017,4,9
+96,J7680Y,Honda Civic,2020,2,5
+97,I9420K,BMW 3 Series,2018,4,7
+98,L2818J,Ford Escape,2022,3,8
+99,O3906E,Jeep Grand Cherokee,2020,3,3
+100,C8153P,Ford Escape,2015,3,6
+101,O8919M,Jeep Grand Cherokee,2021,3,9
+102,S6239X,Ford Mustang,2020,5,7
+103,L3714J,Nissan Altima,2019,1,2
+104,H1344U,Chevrolet Camaro,2022,5,1
+105,N6180A,BMW 3 Series,2024,4,6
+106,V1081J,Toyota Corolla,2017,1,8
+107,S2165Z,McLaren 720S,2017,5,7
+108,I4077R,Porsche 911,2022,4,1
+109,G3818A,Mercedes C-Class,2024,4,4
+110,S2414S,Jeep Grand Cherokee,2017,3,5
+111,L9389J,Honda Civic,2018,2,2
+112,U9466L,Nissan Altima,2017,1,5
+113,B5864J,Honda Civic,2017,2,2
+114,G6942U,Mercedes C-Class,2017,4,2
+115,K1472Y,Honda Civic,2016,2,5
+116,J7750B,BMW 3 Series,2016,4,5
+117,K3044J,Honda Civic,2015,2,8
+118,R3888E,Nissan Altima,2022,1,1
+119,O2116I,Toyota Corolla,2019,1,5
+120,A9128R,Porsche 911,2019,4,1
+121,T5193D,Toyota Corolla,2024,1,1
+122,E8220Y,Nissan Altima,2018,1,1
+123,J8772T,Toyota Corolla,2021,1,2
+124,H2791C,Nissan Altima,2024,1,5
+125,R8715H,Chevrolet Camaro,2020,5,7
+126,G2159B,Jeep Grand Cherokee,2020,3,8
+127,X1963W,Honda Civic,2020,2,10
+128,F4009U,Honda Civic,2023,2,3
+129,O6324K,McLaren 720S,2020,5,6
+130,K8253J,Honda Civic,2017,2,4
+131,J3979W,Nissan Altima,2016,1,3
+132,L9747Y,Nissan Altima,2016,1,2
+133,C2296T,Porsche 911,2019,4,7
+134,S1862X,Toyota Corolla,2015,1,10
+135,C2615J,McLaren 720S,2024,5,3
+136,Y7827G,Jeep Grand Cherokee,2021,3,7
+137,V6627C,Porsche 911,2016,4,8
+138,P1894D,Ford Escape,2022,3,1
+139,X7654A,BMW 3 Series,2020,4,6
+140,O7380Y,Toyota Corolla,2017,1,1
+141,N3271D,Ferrari 488,2021,5,6
+142,D6683L,Mercedes C-Class,2017,4,3
+143,M2305R,Honda Civic,2017,2,7
+144,D9861Y,Ford Escape,2015,3,7
+145,U3208B,Nissan Altima,2018,1,3
+146,N7262O,McLaren 720S,2017,5,10
+147,N1920H,Chevrolet Camaro,2019,5,7
+148,O4281X,Chevrolet Camaro,2022,5,9
+149,B3788B,Nissan Altima,2018,1,7
+150,A1936F,McLaren 720S,2024,5,10
+151,P6155N,Honda Civic,2021,2,4
+152,T9393Z,Ford Escape,2015,3,10
+153,V2912O,Ford Escape,2020,3,2
+154,V7979K,Ford Escape,2022,3,3
+155,I8635Y,Jeep Grand Cherokee,2024,3,8
+156,K8986H,Jeep Grand Cherokee,2020,3,5
+157,I1003W,Toyota Corolla,2020,1,7
+158,R3584N,Nissan Altima,2021,1,6
+159,D5564V,Mercedes C-Class,2022,4,1
+160,S7965F,Chevrolet Camaro,2020,5,9
+161,T1110M,BMW 3 Series,2019,4,5
+162,R9355Y,Toyota Corolla,2023,1,5
+163,J1382J,Toyota Corolla,2023,1,2
+164,G2671R,BMW 3 Series,2023,4,10
+165,B9836K,Ford Mustang,2015,5,6
+166,M6512V,Ford Escape,2017,3,5
+167,V2909P,Jeep Grand Cherokee,2017,3,3
+168,A5943N,Toyota Corolla,2015,1,5
+169,Z7629V,Jeep Grand Cherokee,2019,3,1
+170,P8962E,Honda Civic,2016,2,4
+171,Q8482B,Honda Civic,2023,2,1
+172,T6446D,Nissan Altima,2022,1,2
+173,M8242N,Honda Civic,2021,2,5
+174,M4466G,Mercedes C-Class,2021,4,4
+175,L3960D,Toyota Corolla,2016,1,4
+176,V7516R,Honda Civic,2018,2,4
+177,L1085L,Porsche 911,2017,4,6
+178,R3381P,Chevrolet Camaro,2021,5,10
+179,U4672A,Ford Escape,2024,3,4
+180,X5070R,Mercedes C-Class,2018,4,7
+181,H4818F,Chevrolet Camaro,2019,5,3
+182,V6536A,Porsche 911,2015,4,10
+183,S7467Y,Jeep Grand Cherokee,2023,3,2
+184,J1646J,BMW 3 Series,2016,4,3
+185,M9779D,Honda Civic,2016,2,4
+186,R6564X,Honda Civic,2018,2,2
+187,U2703E,Ferrari 488,2022,5,10
+188,Y9505G,McLaren 720S,2022,5,9
+189,G8951N,Mercedes C-Class,2017,4,10
+190,K8395T,Toyota Corolla,2015,1,9
+191,L5247N,Ford Mustang,2015,5,2
+192,R2816T,Toyota Corolla,2015,1,7
+193,J5063P,BMW 3 Series,2019,4,4
+194,N3852E,Ford Mustang,2019,5,6
+195,M2671L,Nissan Altima,2023,1,7
+196,C6351S,Jeep Grand Cherokee,2015,3,4
+197,U5767J,Honda Civic,2018,2,6
+198,G9423F,Ferrari 488,2021,5,10
+199,R2712G,BMW 3 Series,2024,4,8
+200,N5872X,McLaren 720S,2019,5,8
+201,L3471N,Mazda MX-5,2026,6,6
+202,B2186T,BMW Z4,2024,6,6
+203,M1950S,Ford Mustang Convertible,2024,6,6
+204,B2408P,Mercedes-Benz SL,2025,6,6
+205,C4943C,Audi A5 Cabriolet,2026,6,5
+206,P1968U,Chevrolet Camaro Convertible,2024,6,5
+207,H2013U,Porsche 718 Boxster,2026,6,5
+208,N1812H,MINI Cooper Convertible,2024,6,9
+209,T3181K,Fiat 124 Spider,2025,6,9
+210,E9858D,Volkswagen T-Roc Cabriolet,2026,6,9

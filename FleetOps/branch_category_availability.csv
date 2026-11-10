@@ -1,0 +1,61 @@
+branch_id,branch_name,category_id,category_name,is_offered
+1,South Eric Branch,1,Economy,True
+1,South Eric Branch,2,Compact,True
+1,South Eric Branch,3,SUV,True
+1,South Eric Branch,4,Luxury,True
+1,South Eric Branch,5,Sports,True
+1,South Eric Branch,6,Convertible,False
+2,Jordanville Branch,1,Economy,True
+2,Jordanville Branch,2,Compact,True
+2,Jordanville Branch,3,SUV,True
+2,Jordanville Branch,4,Luxury,True
+2,Jordanville Branch,5,Sports,True
+2,Jordanville Branch,6,Convertible,False
+3,West Kristinaside Branch,1,Economy,True
+3,West Kristinaside Branch,2,Compact,True
+3,West Kristinaside Branch,3,SUV,True
+3,West Kristinaside Branch,4,Luxury,True
+3,West Kristinaside Branch,5,Sports,True
+3,West Kristinaside Branch,6,Convertible,False
+4,West Robinview Branch,1,Economy,True
+4,West Robinview Branch,2,Compact,True
+4,West Robinview Branch,3,SUV,True
+4,West Robinview Branch,4,Luxury,True
+4,West Robinview Branch,5,Sports,True
+4,West Robinview Branch,6,Convertible,False
+5,Andersonshire Branch,1,Economy,True
+5,Andersonshire Branch,2,Compact,True
+5,Andersonshire Branch,3,SUV,True
+5,Andersonshire Branch,4,Luxury,True
+5,Andersonshire Branch,5,Sports,True
+5,Andersonshire Branch,6,Convertible,True
+6,Adamstad Branch,1,Economy,True
+6,Adamstad Branch,2,Compact,True
+6,Adamstad Branch,3,SUV,True
+6,Adamstad Branch,4,Luxury,True
+6,Adamstad Branch,5,Sports,True
+6,Adamstad Branch,6,Convertible,True
+7,Davidstad Branch,1,Economy,True
+7,Davidstad Branch,2,Compact,True
+7,Davidstad Branch,3,SUV,True
+7,Davidstad Branch,4,Luxury,True
+7,Davidstad Branch,5,Sports,True
+7,Davidstad Branch,6,Convertible,False
+8,Juarezview Branch,1,Economy,True
+8,Juarezview Branch,2,Compact,True
+8,Juarezview Branch,3,SUV,True
+8,Juarezview Branch,4,Luxury,True
+8,Juarezview Branch,5,Sports,True
+8,Juarezview Branch,6,Convertible,False
+9,North Valerie Branch,1,Economy,True
+9,North Valerie Branch,2,Compact,True
+9,North Valerie Branch,3,SUV,True
+9,North Valerie Branch,4,Luxury,True
+9,North Valerie Branch,5,Sports,True
+9,North Valerie Branch,6,Convertible,True
+10,Suttonburgh Branch,1,Economy,True
+10,Suttonburgh Branch,2,Compact,True
+10,Suttonburgh Branch,3,SUV,True
+10,Suttonburgh Branch,4,Luxury,True
+10,Suttonburgh Branch,5,Sports,True
+10,Suttonburgh Branch,6,Convertible,False

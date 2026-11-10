@@ -1,0 +1,8 @@
+country_id,country_code,country_name,region,currency_code
+1,US,United States,North America,USD
+2,CA,Canada,North America,CAD
+3,DE,Germany,Europe,EUR
+4,GB,United Kingdom,Europe,GBP
+5,FR,France,Europe,EUR
+6,JP,Japan,Asia,JPY
+7,AU,Australia,Oceania,AUD
