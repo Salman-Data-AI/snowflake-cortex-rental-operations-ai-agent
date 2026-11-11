@@ -38,6 +38,14 @@ SELECT
 FROM RENTAL_OPS.SILVER.stg_fleetops_branches b
 LEFT JOIN RENTAL_OPS.SILVER.stg_fleetops_countries c ON c.country_id = b.country_id;
 
+-- ---------- dim_car_categories ----------
+-- Conformed parent for dim_cars.category_id and bridge.category_id
+CREATE OR ALTER DYNAMIC TABLE RENTAL_OPS.GOLD.dim_car_categories
+  TARGET_LAG = '3 minutes' WAREHOUSE = COMPUTE_WH REFRESH_MODE = INCREMENTAL INITIALIZE = ON_CREATE
+AS
+SELECT category_id, category_name, daily_rate_usd
+FROM RENTAL_OPS.SILVER.stg_fleetops_car_categories;
+
 -- ---------- dim_cars ----------
 -- is_new_fleet: Convertible pilot units (documented in cars_fleet_expansion.csv)
 CREATE OR ALTER DYNAMIC TABLE RENTAL_OPS.GOLD.dim_cars
@@ -104,10 +112,10 @@ FROM RENTAL_OPS.SILVER.stg_bookwave_reservations r
 LEFT JOIN RENTAL_OPS.SILVER.stg_fleetops_currencies u ON u.currency_code = r.payment_currency;
 
 -- ---------- Validation ----------
--- Expect: 7 DTs, 3 minute lag, INCREMENTAL, ACTIVE
+-- Expect: 8 DTs, 3 minute lag, INCREMENTAL, ACTIVE
 SHOW DYNAMIC TABLES IN SCHEMA RENTAL_OPS.GOLD;
 
--- Expect: fact 2000, branches 10, cars 210, customers 500, countries 7, currencies 6, bridge 60
+-- Expect: fact 2000, branches 10, cars 210, customers 500, countries 7, currencies 6, car_categories 6, bridge 60
 -- and every orphan/null count = 0
 SELECT
     (SELECT COUNT(*) FROM RENTAL_OPS.GOLD.fact_reservations)                   AS fact_rows,
@@ -116,6 +124,11 @@ SELECT
     (SELECT COUNT(*) FROM RENTAL_OPS.GOLD.dim_customers)                       AS dim_customers,
     (SELECT COUNT(*) FROM RENTAL_OPS.GOLD.dim_countries)                       AS dim_countries,
     (SELECT COUNT(*) FROM RENTAL_OPS.GOLD.dim_currencies)                      AS dim_currencies,
+    (SELECT COUNT(*) FROM RENTAL_OPS.GOLD.dim_car_categories)                  AS dim_car_categories,
+    (SELECT COUNT(*) FROM RENTAL_OPS.GOLD.dim_cars c
+       WHERE NOT EXISTS (SELECT 1 FROM RENTAL_OPS.GOLD.dim_car_categories k WHERE k.category_id = c.category_id)) AS car_category_orphans,
+    (SELECT COUNT(*) FROM RENTAL_OPS.GOLD.bridge_branch_category_availability a
+       WHERE NOT EXISTS (SELECT 1 FROM RENTAL_OPS.GOLD.dim_car_categories k WHERE k.category_id = a.category_id)) AS bridge_category_orphans,
     (SELECT COUNT(*) FROM RENTAL_OPS.GOLD.bridge_branch_category_availability) AS bridge_rows,
     (SELECT COUNT(*) FROM RENTAL_OPS.GOLD.fact_reservations f
        LEFT JOIN RENTAL_OPS.GOLD.dim_branches pb ON pb.id = f.pickup_branch_id
