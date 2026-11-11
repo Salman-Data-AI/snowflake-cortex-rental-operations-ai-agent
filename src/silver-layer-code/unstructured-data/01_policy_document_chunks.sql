@@ -53,7 +53,17 @@ SELECT
     LENGTH(chunk_text)                                                       AS chunk_char_length,
     AI_COUNT_TOKENS('ai_embed', 'snowflake-arctic-embed-l-v2.0', chunk_text_with_context) AS chunk_token_count
 FROM chunks
-WHERE chunk_text <> '';
+WHERE chunk_text <> ''
+  -- Drop metadata-only Overview chunks (header block, no body): they rank high on
+  -- broad queries but answer nothing; the metadata is already in its own columns.
+  -- Overview chunks with real body text (driving rules intro, loyalty FAQ) are kept.
+  AND NOT (
+      chunks.section_header IS NULL
+      AND TRIM(REGEXP_REPLACE(chunk_text, '^(# .*|\\*\\*[^*]+:\\*\\*.*)$', '', 1, 0, 'm'), ' \n\r\t') = ''
+  );
+
+-- CREATE OR REPLACE resets change tracking; Gold dynamic table needs it for incremental refresh
+ALTER TABLE RENTAL_OPS.SILVER.policy_document_chunks SET CHANGE_TRACKING = TRUE;
 
 -- Validate: rows, docs, max tokens (expect <= 512)
 SELECT COUNT(*) AS row_count,
