@@ -21,6 +21,7 @@ CREATE FILE FORMAT IF NOT EXISTS FF_WHOLE_FILE_TEXT
 
 -- Copy the source files from the workspace data/ folder to the landing stage
 -- (land as Unstructured/policy_documents/<file> on the stage)
+-- Snowsight Workspace only. From the local CLI use scripts/stage_source_files.sh instead.
 COPY FILES INTO @RENTAL_OPS.BRONZE.LANDING
 FROM 'snow://workspace/USER$.PUBLIC."snowflake-cortex-rental-operations-ai-agent"/versions/live/data/'
 FILES = (

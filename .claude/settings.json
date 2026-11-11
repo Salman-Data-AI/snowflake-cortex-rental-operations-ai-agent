@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(snow --version)",
+      "Bash(snow connection list)",
+      "Bash(snow stage list-files:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)"
+    ]
+  }
+}

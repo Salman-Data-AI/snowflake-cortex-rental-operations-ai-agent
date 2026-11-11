@@ -30,7 +30,7 @@ SELECT
     file_path::STRING               AS source_file_path          -- path on @RENTAL_OPS.BRONZE.LANDING
 FROM RENTAL_OPS.SILVER.policy_document_chunks;
 
--- Validate: row count must equal Silver (39), unique chunk_id, max tokens <= 512
+-- Validate: row count must equal Silver (35), unique chunk_id, max tokens <= 512
 SELECT
     (SELECT COUNT(*) FROM RENTAL_OPS.SILVER.policy_document_chunks) AS silver_rows,
     COUNT(*)                   AS gold_rows,
