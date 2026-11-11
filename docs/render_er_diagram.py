@@ -1,6 +1,11 @@
-"""Render the Gold star schema ER diagram to gold_star_schema_er.png.
+"""Render the Gold star schema ER diagram (current version) to gold_star_schema_er_v<VERSION>.png.
 
-Re-run after schema changes:  python3 render_er_diagram.py
+Version history (older images + scripts live in er-diagram-archive/):
+  v1  structured data only (FleetOps + BookWave star schema)
+  v2  + unstructured-data tables: SUPPORT_TICKETS_ENRICHED, REVIEWS_ENRICHED
+
+After a schema change: archive the current PNG and script as *_v<N>, bump VERSION, update TABLES/links,
+then run:  python3 render_er_diagram.py
 """
 from pathlib import Path
 
@@ -10,7 +15,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch, Rectangle
 
-OUT = Path(__file__).with_name("gold_star_schema_er.png")
+VERSION = 2
+OUT = Path(__file__).with_name(f"gold_star_schema_er_v{VERSION}.png")
 
 ROW_H = 0.34
 HEAD_H = 0.55
@@ -20,6 +26,7 @@ STYLE = {
     "fact":   {"head": "#E8445A", "edge": "#E8445A"},
     "dim":    {"head": "#1F2A44", "edge": "#1F2A44"},
     "bridge": {"head": "#2E8B6E", "edge": "#2E8B6E"},
+    "enriched": {"head": "#0E7C9A", "edge": "#0E7C9A"},
 }
 
 # name: (kind, x, top_y, [(column, type, key)])
@@ -54,6 +61,17 @@ TABLES = {
         ("id", "NUMBER", "PK"), ("name", "TEXT", ""), ("email", "TEXT", ""), ("phone", "TEXT", ""),
         ("phone_extension", "TEXT", ""), ("is_phone_valid", "BOOLEAN", ""),
         ("driver_license_number", "TEXT", ""), ("date_of_birth", "DATE", "")]),
+    # v2: unstructured data, enriched with Cortex AI functions in Silver
+    "REVIEWS_ENRICHED": ("enriched", 4.6, 1.8, [
+        ("review_id", "NUMBER", "PK"), ("reservation_id", "NUMBER", "FK"), ("customer_id", "NUMBER", "FK"),
+        ("car_id", "NUMBER", "FK"), ("branch_id", "NUMBER", "FK"), ("rating", "NUMBER", ""),
+        ("language", "TEXT", ""), ("review_date", "DATE", ""), ("review_text", "TEXT", ""),
+        ("review_text_en", "TEXT", "AI_TRANSLATE"), ("sentiment", "TEXT", "AI_SENTIMENT"),
+        ("sentiment_score", "NUMBER", "")]),
+    "SUPPORT_TICKETS_ENRICHED": ("enriched", 12.2, 1.8, [
+        ("ticket_id", "NUMBER", "PK"), ("customer_id", "NUMBER", "FK"), ("reservation_id", "NUMBER", "FK"),
+        ("category", "TEXT", ""), ("ai_category", "TEXT", "AI_CLASSIFY"), ("channel", "TEXT", ""),
+        ("status", "TEXT", ""), ("created_date", "DATE", ""), ("ticket_body", "TEXT", "AI_REDACT")]),
 }
 
 
@@ -85,7 +103,8 @@ def draw_table(ax, name):
         ax.text(x + 0.15, y, col, fontsize=8.2, va="center", zorder=5,
                 color="#C0392B" if is_pk else "#1F2A44", weight="bold" if is_pk else "normal")
         if key:
-            ax.text(x + 2.55, y, key, fontsize=7.2, va="center", color="#7A869A", zorder=5)
+            ax.text(x + 2.35, y, key, fontsize=6.6 if len(key) > 6 else 7.2, va="center",
+                    color="#0E7C9A" if key.startswith("AI_") else "#7A869A", zorder=5)
         ax.text(x + BOX_W - 0.12, y, typ, fontsize=7.2, va="center", ha="right", color="#7A869A", zorder=5)
 
 
@@ -104,12 +123,12 @@ def connect(ax, pts, color, label=None, label_at=None):
 
 
 def main():
-    fig, ax = plt.subplots(figsize=(17, 13.5), dpi=150)
-    ax.set_xlim(-0.3, 23.2)
-    ax.set_ylim(0.2, 19.4)
+    fig, ax = plt.subplots(figsize=(17.5, 18), dpi=150)
+    ax.set_xlim(-0.6, 23.6)
+    ax.set_ylim(-5.6, 19.4)
     ax.axis("off")
 
-    ax.text(11.45, 19.05, "Avelto Rentals — Gold Star Schema  (RENTAL_OPS.GOLD)", ha="center",
+    ax.text(11.45, 19.05, f"Avelto Rentals — Gold Star Schema  (RENTAL_OPS.GOLD)  v{VERSION}", ha="center",
             fontsize=16, weight="bold", color="#1F2A44")
     ax.text(11.45, 18.55, "Lines run from a foreign key (open circle, many side) to the primary key it references "
             "(filled circle, one side).", ha="center", fontsize=9, color="#5A6476")
@@ -150,17 +169,46 @@ def main():
     connect(ax, [(side_x("BRIDGE_BRANCH_CATEGORY_AVAILABILITY", "R"), y1), (9.8, y1), (9.8, 13.1), (17.85, 13.1),
                  (17.85, y2), (side_x("DIM_CAR_CATEGORIES", "L"), y2)], "#2E8B6E", "category availability", (13.6, 13.12))
 
+    # v2: enriched unstructured tables -> star schema
+    c_rev, c_tkt = "#0E7C9A", "#5FA8BF"
+    fact_id = row_y("FACT_RESERVATIONS", "id")
+    # tickets.reservation_id / reviews.reservation_id -> fact.id (enter fact from the left)
+    y1 = row_y("SUPPORT_TICKETS_ENRICHED", "reservation_id")
+    connect(ax, [(side_x("SUPPORT_TICKETS_ENRICHED", "L"), y1), (10.75, y1), (10.75, fact_id),
+                 (side_x("FACT_RESERVATIONS", "L"), fact_id)], c_tkt)
+    y1 = row_y("REVIEWS_ENRICHED", "reservation_id")
+    connect(ax, [(side_x("REVIEWS_ENRICHED", "R"), y1), (10.05, y1), (10.05, fact_id + 0.12),
+                 (side_x("FACT_RESERVATIONS", "L"), fact_id + 0.12)], c_rev, "reservation", (10.05, 3.0))
+    # tickets.customer_id -> customers.id
+    cust_id = row_y("DIM_CUSTOMERS", "id")
+    y1 = row_y("SUPPORT_TICKETS_ENRICHED", "customer_id")
+    connect(ax, [(side_x("SUPPORT_TICKETS_ENRICHED", "R"), y1), (17.85, y1), (17.85, cust_id),
+                 (side_x("DIM_CUSTOMERS", "L"), cust_id)], c_tkt)
+    # reviews.customer_id -> customers.id (routed below both tables)
+    y1 = row_y("REVIEWS_ENRICHED", "customer_id")
+    connect(ax, [(side_x("REVIEWS_ENRICHED", "L"), y1), (4.25, y1), (4.25, -3.35), (17.55, -3.35),
+                 (17.55, cust_id - 0.12), (side_x("DIM_CUSTOMERS", "L"), cust_id - 0.12)], c_rev, "customer", (14.0, -3.33))
+    # reviews.car_id -> cars.id (routed below, up the far right)
+    y1, y2 = row_y("REVIEWS_ENRICHED", "car_id"), row_y("DIM_CARS", "id")
+    connect(ax, [(side_x("REVIEWS_ENRICHED", "L"), y1), (3.95, y1), (3.95, -3.75), (23.4, -3.75),
+                 (23.4, y2), (side_x("DIM_CARS", "R"), y2)], c_rev, "car", (14.0, -3.73))
+    # reviews.branch_id -> branches.id (up the far left)
+    y1, y2 = row_y("REVIEWS_ENRICHED", "branch_id"), row_y("DIM_BRANCHES", "id")
+    connect(ax, [(side_x("REVIEWS_ENRICHED", "L"), y1), (-0.4, y1), (-0.4, y2 - 0.12),
+                 (side_x("DIM_BRANCHES", "L"), y2 - 0.12)], c_rev, "branch", (1.8, y1 + 0.02))
+
     for name in TABLES:
         draw_table(ax, name)
 
     # legend
-    lx, ly = 0.3, 1.35
+    lx, ly = 0.3, -4.55
     for i, (kind, text) in enumerate([("dim", "Dimension: descriptive attributes"),
                                       ("fact", "Fact: one row per reservation (measures)"),
-                                      ("bridge", "Bridge: branch × category availability")]):
-        ax.add_patch(Rectangle((lx + i * 7.4, ly - 0.15), 0.45, 0.32, fc=STYLE[kind]["head"], ec="none"))
-        ax.text(lx + i * 7.4 + 0.6, ly, text, fontsize=9, va="center", color="#1F2A44")
-    ax.text(0.3, 0.75, "PK = primary key   FK = foreign key   Constraints are not enforced on Dynamic Tables; "
+                                      ("bridge", "Bridge: branch × category availability"),
+                                      ("enriched", "Enriched (v2): unstructured text + Cortex AI columns")]):
+        ax.add_patch(Rectangle((lx + i * 5.8, ly - 0.15), 0.45, 0.32, fc=STYLE[kind]["head"], ec="none"))
+        ax.text(lx + i * 5.8 + 0.6, ly, text, fontsize=8.5, va="center", color="#1F2A44")
+    ax.text(0.3, -5.15, "PK = primary key   FK = foreign key   Constraints are not enforced on Dynamic Tables; "
             "integrity is checked by the validation queries.", fontsize=8, color="#5A6476")
 
     fig.savefig(OUT, bbox_inches="tight", facecolor="white")

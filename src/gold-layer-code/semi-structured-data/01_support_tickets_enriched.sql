@@ -23,7 +23,7 @@ SELECT
     TRIM(channel)                       AS channel,
     TRIM(status)                        AS status,
     TRY_TO_DATE(TRIM(created_date))     AS created_date,
-    ticket_body                                              -- PII-redacted (AI_REDACT)
+    ticket_body::STRING                 AS ticket_body       -- PII-redacted (AI_REDACT); cast from VARIANT
 FROM RENTAL_OPS.SILVER.support_tickets_enriched;
 
 -- Validate: row count must equal Silver (300) and Bronze

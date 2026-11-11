@@ -23,7 +23,7 @@ SELECT
          'Damage Claim', 'Account Access', 'Refund Request', 'Booking Change'],
         {'task_description': 'Classify a car rental customer support ticket by the main reason the customer contacted support.'}
     ):labels[0]::STRING AS ai_category,
-    AI_REDACT("ticket_body", ['NAME', 'PHONE_NUMBER', 'EMAIL']) AS ticket_body
+    AI_REDACT("ticket_body", ['NAME', 'PHONE_NUMBER', 'EMAIL'])::STRING AS ticket_body  -- AI_REDACT returns VARIANT
 FROM RENTAL_OPS.BRONZE.bronze_support_tickets;
 
 -- Validate
