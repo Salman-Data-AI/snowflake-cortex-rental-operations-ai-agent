@@ -1,5 +1,5 @@
 -- =============================================================
--- Bronze Layer | Reviews: stage + load Unstructured/reviews.csv
+-- Bronze Layer | Reviews: stage + load data/Unstructured/reviews.csv
 -- Prereq: bronze-layer-code/01_setup_database_schema_stage.sql (DB, schema, LANDING stage)
 -- All columns VARCHAR, stored exactly as written (same pattern as FleetOps loads).
 -- Rerunnable: table is replaced and the file reloaded (FORCE ignores load history).
@@ -16,9 +16,10 @@ CREATE FILE FORMAT IF NOT EXISTS FF_CSV
     NULL_IF = ()
     ENCODING = 'UTF8';
 
--- Copy the source file from the workspace to the landing stage
+-- Copy the source file from the workspace data/ folder to the landing stage
+-- (lands as Unstructured/<file> on the stage: path is relative to the FROM folder)
 COPY FILES INTO @RENTAL_OPS.BRONZE.LANDING
-FROM 'snow://workspace/USER$.PUBLIC."snowflake-cortex-rental-operations-ai-agent"/versions/live/'
+FROM 'snow://workspace/USER$.PUBLIC."snowflake-cortex-rental-operations-ai-agent"/versions/live/data/'
 FILES = ('Unstructured/reviews.csv');
 
 -- ---------- DDL ----------

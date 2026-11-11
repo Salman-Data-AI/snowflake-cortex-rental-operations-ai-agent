@@ -50,16 +50,16 @@ The Gold layer is the **analytics-ready star schema**: one fact table of reserva
 
 | Source file | Bronze (raw, as-is) | Silver (cleaned, 1 min lag) | Gold (star schema, 3 min lag) |
 |---|---|---|---|
-| `FleetOps/branches.csv` + `countries.csv` | `bronze_branches`, `bronze_countries` | `stg_fleetops_branches`, `stg_fleetops_countries` | `dim_branches` |
-| `FleetOps/countries.csv` | `bronze_countries` | `stg_fleetops_countries` | `dim_countries` |
-| `FleetOps/currencies.csv` | `bronze_currencies` | `stg_fleetops_currencies` | `dim_currencies` |
-| `FleetOps/car_categories.csv` | `bronze_car_categories` | `stg_fleetops_car_categories` | `dim_car_categories` |
-| `FleetOps/cars.csv` + `car_categories.csv` | `bronze_cars`, `bronze_car_categories` | `stg_fleetops_cars`, `stg_fleetops_car_categories` | `dim_cars` |
-| `FleetOps/customers.csv` | `bronze_customers` | `stg_fleetops_customers` | `dim_customers` |
-| `FleetOps/branch_category_availability.csv` | `bronze_branch_category_availability` | `stg_fleetops_branch_category_availability` | `bridge_branch_category_availability` |
-| `BookWave/reservations_export.json` + `currencies.csv` | `bronze_bookwave_reservations_raw`, `bronze_currencies` | `stg_bookwave_reservations`, `stg_fleetops_currencies` | `fact_reservations` |
-| `Unstructured/support_tickets.csv` *(v2)* | `bronze_support_tickets` | `support_tickets_enriched` (AI_CLASSIFY + AI_REDACT) | `support_tickets_enriched` |
-| `Unstructured/reviews.csv` *(v2)* | `bronze_reviews` | `reviews_enriched` (AI_SENTIMENT + AI_TRANSLATE) | `reviews_enriched` |
+| `data/FleetOps/branches.csv` + `countries.csv` | `bronze_branches`, `bronze_countries` | `stg_fleetops_branches`, `stg_fleetops_countries` | `dim_branches` |
+| `data/FleetOps/countries.csv` | `bronze_countries` | `stg_fleetops_countries` | `dim_countries` |
+| `data/FleetOps/currencies.csv` | `bronze_currencies` | `stg_fleetops_currencies` | `dim_currencies` |
+| `data/FleetOps/car_categories.csv` | `bronze_car_categories` | `stg_fleetops_car_categories` | `dim_car_categories` |
+| `data/FleetOps/cars.csv` + `car_categories.csv` | `bronze_cars`, `bronze_car_categories` | `stg_fleetops_cars`, `stg_fleetops_car_categories` | `dim_cars` |
+| `data/FleetOps/customers.csv` | `bronze_customers` | `stg_fleetops_customers` | `dim_customers` |
+| `data/FleetOps/branch_category_availability.csv` | `bronze_branch_category_availability` | `stg_fleetops_branch_category_availability` | `bridge_branch_category_availability` |
+| `data/BookWave/reservations_export.json` + `currencies.csv` | `bronze_bookwave_reservations_raw`, `bronze_currencies` | `stg_bookwave_reservations`, `stg_fleetops_currencies` | `fact_reservations` |
+| `data/Unstructured/support_tickets.csv` *(v2)* | `bronze_support_tickets` | `support_tickets_enriched` (AI_CLASSIFY + AI_REDACT) | `support_tickets_enriched` |
+| `data/Unstructured/reviews.csv` *(v2)* | `bronze_reviews` | `reviews_enriched` (AI_SENTIMENT + AI_TRANSLATE) | `reviews_enriched` |
 
 - **Bronze**: data landed exactly as received (text columns, nested JSON in a VARIANT).
 - **Silver**: typed, trimmed, standardised; data-quality issues exposed as `is_*` flag columns.
@@ -333,7 +333,7 @@ Currently every category is offered everywhere, except **Convertible**, which is
 |---|---|
 | **Grain** | One row per customer support ticket |
 | **Rows** | 300 |
-| **Source** | `SILVER.support_tickets_enriched` ← `BRONZE.bronze_support_tickets` ← `Unstructured/support_tickets.csv` |
+| **Source** | `SILVER.support_tickets_enriched` ← `BRONZE.bronze_support_tickets` ← `data/Unstructured/support_tickets.csv` |
 | **Business description** | Every support ticket with an AI-assigned category and a **PII-redacted** ticket text. The raw text (which contains names, phone numbers and emails) is not carried beyond Bronze. |
 
 | # | Column | Data type | Key | Description |
@@ -358,7 +358,7 @@ Currently every category is offered everywhere, except **Convertible**, which is
 |---|---|
 | **Grain** | One row per customer review |
 | **Rows** | 1,400 |
-| **Source** | `SILVER.reviews_enriched` ← `BRONZE.bronze_reviews` ← `Unstructured/reviews.csv` |
+| **Source** | `SILVER.reviews_enriched` ← `BRONZE.bronze_reviews` ← `data/Unstructured/reviews.csv` |
 | **Business description** | Customer reviews with an AI sentiment label and an English version of every review, so reviews can be analysed across languages alongside reservations, cars and branches. |
 
 | # | Column | Data type | Key | Description |

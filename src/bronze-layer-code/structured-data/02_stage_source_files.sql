@@ -1,10 +1,11 @@
 -- =============================================================
 -- Bronze Layer | Step 02: Copy source files from the workspace to the landing stage
--- FleetOps/cars_fleet_expansion.csv is intentionally excluded (superseded note, not data).
+-- Source files live in the workspace data/ folder; they land on the stage as FleetOps/... and BookWave/...
+-- data/FleetOps/cars_fleet_expansion.csv is intentionally excluded (superseded note, not data).
 -- =============================================================
 
 COPY FILES INTO @RENTAL_OPS.BRONZE.LANDING
-FROM 'snow://workspace/USER$.PUBLIC."snowflake-cortex-rental-operations-ai-agent"/versions/live/'
+FROM 'snow://workspace/USER$.PUBLIC."snowflake-cortex-rental-operations-ai-agent"/versions/live/data/'
 FILES = (
     'FleetOps/branches.csv',
     'FleetOps/cars.csv',
