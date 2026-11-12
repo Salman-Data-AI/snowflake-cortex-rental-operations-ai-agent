@@ -1,5 +1,7 @@
 # 01 — Policy RAG: Retrieval Evaluation & Improvement
 
+> **Status (2026-11-12):** Steps 1–2 done. Step 3 is next. **Step 4 is RETIRED** as a planned step (kept as a conditional option) and **Step 5 is brought forward**. Current roadmap: `docs/plans/02_policy_rag_roadmap_revision.md`.
+
 Incremental build plan for improving retrieval quality of the policy documents
 RAG pipeline, measured against a golden dataset at every step.
 
@@ -31,11 +33,11 @@ vocabulary mismatch between user phrasing and policy wording.
 
 | Step | Deliverable | Commit point |
 |---|---|---|
-| 1 | Baseline search service (already built) | Commit current `src/` scripts |
-| 2 | Golden dataset + results table + eval procedure + baseline run (`v0_baseline`) | Commit `evaluation/` |
-| 3 | Option A — ingestion-side question generation, service rebuild, eval run (`v1_doc2query`) | Commit `src/` + `evaluation/` |
-| 4 | Option B — query-side rewrite + fusion + relevance threshold, eval run (`v2_query_rewrite`) | Commit `src/` + `evaluation/` |
-| 5 | (Later) TruLens / AI Observability once the agent generates answers | — |
+| 1 | Baseline search service (already built) — ✅ done | Commit current `src/` scripts |
+| 2 | Golden dataset + results table + eval procedure + baseline run (`v0_baseline`) — ✅ done (`gq_v2`) | Commit `evaluation/` |
+| 3 | Option A — ingestion-side question generation, service rebuild, eval run (`v1_doc2query`) — ▶ next | Commit `src/` + `evaluation/` |
+| ~~4~~ | ~~Option B — query-side rewrite + fusion + relevance threshold, eval run (`v2_query_rewrite`)~~ — ⛔ retired (conditional only, see plan 02) | — |
+| 5 | TruLens / AI Observability once the agent generates answers — ⏫ brought forward (plan 02, Phase 3) | — |
 
 ---
 
@@ -140,7 +142,9 @@ against the baseline.
 
 ---
 
-## Step 4 — Option B: query-side rewrite, fusion, relevance threshold
+## ~~Step 4 — Option B: query-side rewrite, fusion, relevance threshold~~ — ⛔ RETIRED
+
+> Retired 2026-11-12 (plan 02). Reason: one ranking miss in 30 leaves little headroom, and the v0 results showed reranker-score thresholds cannot separate answerable from near-miss out-of-scope questions (score ranges overlap; margin is no better). Abstention moves to the answer-generation step. Build this only if Phase 3 answer-level evaluation shows out-of-scope answers or casual misses. Prompt kept below for that case.
 
 ```text
 Implement Option B as a retrieval layer on top of the v1 service, then evaluate it.
@@ -169,7 +173,7 @@ Implement Option B as a retrieval layer on top of the v1 service, then evaluate 
 
 ---
 
-## Step 5 — Observability (deferred)
+## Step 5 — Observability — ⏫ BROUGHT FORWARD (plan 02, Phase 3)
 
 ```text
 The agent now generates answers. Set up TruLens / Snowflake AI Observability for

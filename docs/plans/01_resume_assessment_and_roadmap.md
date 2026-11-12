@@ -1,5 +1,7 @@
 # Rental Ops AI Agent — Assessment & Plan (resuming from CoCo → Claude Code)
 
+> **Status (2026-11-12):** Phases 0 and 1 are **DONE**. Phase 2 continues unchanged. Phase 3 is **RETIRED** and the forward roadmap is now [`02_policy_rag_roadmap_revision.md`](02_policy_rag_roadmap_revision.md). This document is kept as the historical assessment.
+
 ## Context
 The project was built through Snowflake CoCo, which ran SQL directly in Snowsight. Work now moves to Claude Code in the local repo, using `snow sql -c rental-dev`. Before building further, we need to confirm the repo matches what is deployed, find any gaps, and set up the local tooling. The next planned feature is the retrieval-evaluation work in `docs/prompts/01_policy_rag_retrieval_evaluation.md`, Steps 2–4.
 
@@ -43,7 +45,7 @@ Account `NMFXJHD-AIB97847` (AWS_US_WEST_2), role ACCOUNTADMIN, warehouse `COMPUT
 - Within each phase I write the SQL files, show you the DDL, and run it via `snow sql -c rental-dev` once you approve.
 - I show you the query results and validation output here, then **stop for your review** before the next phase.
 
-### Phase 0: Claude Code setup (small, low-risk)
+### Phase 0: Claude Code setup (small, low-risk) — ✅ DONE (commit 0d9a771)
 1. Make `snow` resolvable. Either symlink it into `~/.local/bin` or set PATH in `.claude/settings.json` `env`, via the `update-config` skill.
 2. Add `CLAUDE.md` with:
    - project layout and layer conventions;
@@ -54,7 +56,7 @@ Account `NMFXJHD-AIB97847` (AWS_US_WEST_2), role ACCOUNTADMIN, warehouse `COMPUT
 4. Commit the pending `.gitignore` change with this setup.
 5. Fix the "39" comment. Add a CLI-friendly alternative to the `snow://workspace` loads: either a `snow stage copy data/... @RENTAL_OPS.BRONZE.LANDING/...` note in each Bronze script, or a `scripts/stage_source_files.sh`. Keep the Workspace path for Snowsight use.
 
-### Phase 1: Step 2, evaluation framework and baseline (from `docs/prompts/01_…md`)
+### Phase 1: Step 2, evaluation framework and baseline (from `docs/prompts/01_…md`) — ✅ DONE (golden set extended to `gq_v2`)
 - New `evaluation/` folder with numbered scripts:
   - `01_schema.sql` (`RENTAL_OPS.EVALUATION`)
   - `02_policy_golden_questions.sql`
@@ -66,21 +68,23 @@ Account `NMFXJHD-AIB97847` (AWS_US_WEST_2), role ACCOUNTADMIN, warehouse `COMPUT
 - Needs only the active search service, no DT resume. Cost is about 20 SEARCH_PREVIEW calls on X-Small.
 - Report: summary metrics, failed questions with the actual rank of the expected chunk, and the reranker-score distribution.
 
-### Phase 2: Step 3, doc2query (v1)
+### Phase 2: Step 3, doc2query (v1) — ▶ NEXT (unchanged; see plan 02)
 - Silver CTAS adds `generated_questions ARRAY` + `question_model` via AI_COMPLETE, a one-time AI cost of about 35 calls.
 - Keep the token budget; re-enable change tracking; carry the new columns through the Gold DT.
 - Refresh the Gold DT manually (`ALTER DYNAMIC TABLE … REFRESH`, without resuming), then rebuild `POLICY_SEARCH`.
 - Show you 5 sample chunks before the eval. Run `v1_doc2query` and compare with v0, including a leakage check.
 
-### Phase 3: Step 4, query rewrite + RRF + threshold (v2)
+### ~~Phase 3: Step 4, query rewrite + RRF + threshold (v2)~~ — ⛔ RETIRED
+> Retired 2026-11-12 by plan 02: ranking is already strong (hit@1 0.967 on `gq_v2`) and reranker-score thresholds proved poorly calibrated. Kept only as a *conditional* Phase 4 in plan 02, triggered by answer-level evaluation results. Original text below for reference.
 - `RENTAL_OPS.GOLD.policy_search_retrieve(question, top_k)`, plus the eval proc extension. Run `v2_query_rewrite` and compare v0/v1/v2.
 
 ### Later (separate planning)
 Docs update for the policy RAG objects, Semantic View/Cortex Analyst, the Cortex Agent, and Step 5 observability.
+> Superseded in part: Step 5 (answer-level evaluation) is **brought forward** to Phase 3 of plan 02.
 
 Each phase ends at a commit point. Commits stay on `feat/build-cortex-search`; I push nothing and create nothing in Snowflake without your approval for each DDL step.
 
 ## Verification
 - Phase 0: `snow --version` and `snow sql -c rental-dev -q "SELECT CURRENT_ROLE()"` work from Claude's shell without the full path.
 - Phase 1: row counts in `EVALUATION` tables; the summary view returns one row for `v0_baseline`; the late-return question is visibly failing (it is the known failure).
-- Phases 2–3: `DESCRIBE CORTEX SEARCH SERVICE` shows 35 rows ACTIVE after the rebuild; the summary view compares v0/v1/v2 side by side; DTs are still SUSPENDED afterwards (`SHOW DYNAMIC TABLES`).
+- Phases 2–3 (Phase 3 retired; see plan 02 for current verification): `DESCRIBE CORTEX SEARCH SERVICE` shows 35 rows ACTIVE after the rebuild; the summary view compares v0/v1/v2 side by side; DTs are still SUSPENDED afterwards (`SHOW DYNAMIC TABLES`).
