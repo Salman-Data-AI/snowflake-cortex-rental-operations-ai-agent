@@ -16,6 +16,11 @@
 --                             generates answers (Step 5).
 -- Out-of-scope questions: is_answerable = FALSE, no document/section, empty chunk + evidence arrays.
 -- Rerunnable (CREATE OR REPLACE): the script is the source of truth for the dataset.
+-- Versions (dataset_version is stamped on every row and copied into each result row):
+--   gq_v1 : pq_01-pq_25 (21 answerable, 4 out-of-scope)
+--   gq_v2 : + pq_26-pq_34 harder casual/paraphrase questions (sections not yet covered,
+--           wording far from the policy text) + pq_35-pq_38 near-miss out-of-scope questions
+--           (topic sounds covered, answer is not) -> 38 questions (30 answerable, 8 out-of-scope)
 -- =============================================================
 
 CREATE OR REPLACE TABLE RENTAL_OPS.EVALUATION.policy_golden_questions (
@@ -39,7 +44,7 @@ INSERT INTO RENTAL_OPS.EVALUATION.policy_golden_questions
     (question_id, question, question_style, is_answerable, expected_document_id,
      expected_section_header, expected_chunk_ids, expected_evidence, expected_answer, notes, dataset_version)
 SELECT column1, column2, column3, column4, column5, column6,
-       PARSE_JSON(column7)::ARRAY, PARSE_JSON(column8)::ARRAY, column9, column10, 'gq_v1'
+       PARSE_JSON(column7)::ARRAY, PARSE_JSON(column8)::ARRAY, column9, column10, 'gq_v2'
 FROM VALUES
 -- ---------- Cancellation & Refund Policy ----------
 ('pq_01', 'How much of my money do I get back if I cancel between 24 and 48 hours before pickup?',
@@ -173,6 +178,61 @@ FROM VALUES
  '["Towing to the nearest Avelto branch or approved partner garage is included", "including towing to the nearest Avelto branch or partner garage"]',
  'Yes, towing to the nearest Avelto branch or approved partner garage is included; towing elsewhere is billed at cost.',
  'Insurance section 4 also states towing is covered'),
+-- ---------- gq_v2: harder answerable questions (wording far from the policy text) ----------
+('pq_26', 'I''m 23, will it cost me more to rent a sports car?',
+ 'casual', TRUE, 'rental_agreement_terms', '1. Eligibility',
+ '["rental_agreement_terms_01"]',
+ '["Renters under 25 renting a Sports or Convertible category vehicle are subject to a Young Driver Surcharge of $25/day"]',
+ 'Yes. Renters under 25 pay a Young Driver Surcharge of $25 per day on Sports and Convertible vehicles.',
+ '"cost more" vs "Young Driver Surcharge"; US region chunk also mentions the surcharge'),
+('pq_27', 'Can I take the rental across the border into another country?',
+ 'paraphrase', TRUE, 'rental_agreement_terms', '6. Prohibited Use',
+ '["rental_agreement_terms_06"]',
+ '["travel outside the country of rental without prior written approval from Avelto Rentals"]',
+ 'Only with prior written approval from Avelto Rentals; otherwise it is prohibited and voids the insurance coverage.',
+ 'Same chunk as pq_09, different clause'),
+('pq_28', 'My flight is delayed and I''ll get to the counter 3 hours after my pickup time, will the car still be there?',
+ 'casual', TRUE, 'rental_agreement_terms', '2. Reservation and Pickup',
+ '["rental_agreement_terms_02"]',
+ '["Reservations are held for two hours past the scheduled pickup time"]',
+ 'Reservations are only held for two hours past the scheduled pickup time, so a 3-hour delay is past the hold window.',
+ 'No shared vocabulary ("flight delayed", "counter") with the policy'),
+('pq_29', 'They didn''t have the car class I booked and nothing similar either, what do I get?',
+ 'casual', TRUE, 'cancellation_refund_policy', 'Refunds for Service Issues',
+ '["cancellation_refund_policy_05"]',
+ '["the customer receives a full refund plus a 1,000-point Avelto Miles credit"]',
+ 'A full refund plus a 1,000-point Avelto Miles credit, regardless of the cancellation timing rules.',
+ 'Covers a section not used in gq_v1'),
+('pq_30', 'Can I give my reward points to my partner?',
+ 'casual', TRUE, 'loyalty_program_faq', 'Overview',
+ '["loyalty_program_faq_00"]',
+ '["Avelto Miles points are non-transferable and tied to the account that earned them"]',
+ 'No, Avelto Miles points are non-transferable and stay with the account that earned them.',
+ '"give" vs "non-transferable"'),
+('pq_31', 'Does the damage waiver cover scrapes underneath the car from driving on a gravel road?',
+ 'paraphrase', TRUE, 'insurance_damage_waiver', '2. Collision Damage Waiver (CDW)',
+ '["insurance_damage_waiver_02"]',
+ '["damage to tires or undercarriage from off-road or unpaved-road driving"]',
+ 'No. CDW does not cover tire or undercarriage damage from off-road or unpaved-road driving.',
+ 'Exclusion clause; Australia region chunk also mentions unsealed roads'),
+('pq_32', 'It''s 2am and I have a flat tire, should I use the chat or call?',
+ 'casual', TRUE, 'roadside_assistance_guide', 'After-Hours Support',
+ '["roadside_assistance_guide_06"]',
+ '["phone remains the fastest channel overnight"]',
+ 'Call. Roadside Assistance is available 24/7 by phone; chat and email have reduced coverage between midnight and 6 a.m.',
+ 'Covers a section not used in gq_v1; "flat tire" also pulls When-to-contact'),
+('pq_33', 'I''ve only ever driven on the right side of the road, is there any help for driving in the UK?',
+ 'casual', TRUE, 'driving_rules_by_region', 'United Kingdom (branch: Andersonshire)',
+ '["driving_rules_by_region_05"]',
+ '["Renters from countries where driving is on the right should request the orientation briefing offered free at pickup at this branch"]',
+ 'Yes, ask for the free orientation briefing at pickup at the Andersonshire branch; driving is on the left.',
+ NULL),
+('pq_34', 'How long until I hear back about my refund request?',
+ 'paraphrase', TRUE, 'cancellation_refund_policy', 'How to Request a Refund',
+ '["cancellation_refund_policy_06"]',
+ '["Most refund decisions are communicated within 3 business days of the request"]',
+ 'Most refund decisions are communicated within 3 business days of the request.',
+ 'Covers a section not used in gq_v1'),
 -- ---------- Out of scope (no answer in the corpus) ----------
 ('pq_22', 'Can I bring my dog in the rental car?',
  'out_of_scope', FALSE, NULL, NULL, '[]', '[]',
@@ -185,9 +245,22 @@ FROM VALUES
  'Not covered by the policy documents.', 'Branch is named in the corpus (France chunk), hours are not'),
 ('pq_25', 'Do you have electric cars and where can I charge them?',
  'out_of_scope', FALSE, NULL, NULL, '[]', '[]',
- 'Not covered by the policy documents.', 'EVs not covered; may pull France ZFE / emissions-class text');
+ 'Not covered by the policy documents.', 'EVs not covered; may pull France ZFE / emissions-class text'),
+-- gq_v2: near-miss out-of-scope (topic sounds covered, the answer is not in the corpus)
+('pq_35', 'Can I add a second driver to my rental?',
+ 'out_of_scope', FALSE, NULL, NULL, '[]', '[]',
+ 'Not covered by the policy documents.', 'Near-miss: Eligibility talks about "renters" but not additional drivers'),
+('pq_36', 'What is the speed limit on French motorways?',
+ 'out_of_scope', FALSE, NULL, NULL, '[]', '[]',
+ 'Not covered by the policy documents.', 'Near-miss: France chunk exists, "speed limit" appears only in the Germany chunk'),
+('pq_37', 'Can I pay for my rental in cash?',
+ 'out_of_scope', FALSE, NULL, NULL, '[]', '[]',
+ 'Not covered by the policy documents.', 'Near-miss: payment wording in refunds/tolls ("card on file") but no payment methods'),
+('pq_38', 'Do I earn Avelto Miles when I buy fuel at partner gas stations?',
+ 'out_of_scope', FALSE, NULL, NULL, '[]', '[]',
+ 'Not covered by the policy documents.', 'Near-miss: loyalty FAQ is about earning points, but only per rental day / one-way');
 
--- Validate: expect 25 rows (21 answerable, 4 out-of-scope); answerable rows need chunk ids AND evidence
+-- Validate: expect 38 rows (30 answerable, 8 out-of-scope); answerable rows need chunk ids AND evidence
 SELECT question_style,
        COUNT(*)                                                         AS questions,
        COUNT_IF(is_answerable)                                          AS answerable,

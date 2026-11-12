@@ -5,7 +5,7 @@
 --   v0_baseline         : top_k = 5, the metric run
 --   v0_baseline_depth35 : top_k = 35 (whole corpus), diagnostic only, to see where missed
 --                         expected chunks actually rank
--- Cost: 2 x 25 SEARCH_PREVIEW calls on COMPUTE_WH (X-Small); no LLM calls.
+-- Cost: 2 x 38 SEARCH_PREVIEW calls (gq_v2) on COMPUTE_WH (X-Small); no LLM calls.
 -- Each run appends new rows (new run_id); reports read the latest run per setup_version.
 -- =============================================================
 

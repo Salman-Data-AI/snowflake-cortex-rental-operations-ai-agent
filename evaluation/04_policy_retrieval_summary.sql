@@ -17,6 +17,7 @@ SELECT
     run_id,
     setup_version,
     retriever,
+    dataset_version,
     MIN(run_ts)                                              AS run_ts,
     MIN(top_k)                                               AS top_k,
     COALESCE(question_style, 'ALL')                          AS question_style,
@@ -33,6 +34,6 @@ SELECT
     SUM(llm_call_count)                                      AS llm_calls
 FROM r
 GROUP BY GROUPING SETS (
-    (run_id, setup_version, retriever),
-    (run_id, setup_version, retriever, question_style)
+    (run_id, setup_version, retriever, dataset_version),
+    (run_id, setup_version, retriever, dataset_version, question_style)
 );

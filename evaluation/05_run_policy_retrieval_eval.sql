@@ -73,7 +73,7 @@ BEGIN
 
     -- ---------- Phase 2: metrics (retriever-independent) ----------
     INSERT INTO RENTAL_OPS.EVALUATION.policy_retrieval_results (
-        run_id, setup_version, retriever, run_ts, question_id, top_k,
+        run_id, setup_version, retriever, run_ts, question_id, top_k, dataset_version,
         retrieved_chunk_ids, scores, result_count, first_hit_rank,
         hit_at_1, hit_at_3, hit_at_5, reciprocal_rank, precision_at_3, recall_at_5,
         top_reranker_score, correctly_rejected, latency_ms, llm_call_count, raw_response
@@ -101,7 +101,7 @@ BEGIN
         GROUP BY question_id
     )
     SELECT
-        :run_id, :setup_version, :retriever, :run_ts, a.question_id, :top_k,
+        :run_id, :setup_version, :retriever, :run_ts, a.question_id, :top_k, g.dataset_version,
         a.retrieved_chunk_ids, a.scores, a.result_count, a.first_hit_rank,
         IFF(g.is_answerable, COALESCE(a.first_hit_rank <= 1, FALSE), NULL),
         IFF(g.is_answerable, COALESCE(a.first_hit_rank <= 3, FALSE), NULL),

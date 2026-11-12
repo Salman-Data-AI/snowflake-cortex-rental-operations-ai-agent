@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS RENTAL_OPS.EVALUATION.policy_retrieval_results (
     run_ts               TIMESTAMP_LTZ NOT NULL,
     question_id          STRING        NOT NULL,
     top_k                NUMBER        NOT NULL,
+    dataset_version      STRING,                   -- golden set version the run was scored against
     retrieved_chunk_ids  ARRAY,                    -- ranked, rank 1 first
     scores               VARIANT,                  -- ranked array of @scores per result
     result_count         NUMBER,
@@ -33,3 +34,10 @@ CREATE TABLE IF NOT EXISTS RENTAL_OPS.EVALUATION.policy_retrieval_results (
     raw_response         VARIANT,
     CONSTRAINT pk_policy_retrieval_results PRIMARY KEY (run_id, question_id)
 );
+
+-- Migration (rerunnable): dataset_version was added after the first v0 runs, which used gq_v1.
+-- ADD COLUMN appends it at the end on an existing table; inserts name their columns, so order is irrelevant.
+ALTER TABLE RENTAL_OPS.EVALUATION.policy_retrieval_results ADD COLUMN IF NOT EXISTS dataset_version STRING;
+UPDATE RENTAL_OPS.EVALUATION.policy_retrieval_results
+   SET dataset_version = 'gq_v1'
+ WHERE dataset_version IS NULL;
