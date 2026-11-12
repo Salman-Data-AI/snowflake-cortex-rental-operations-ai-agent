@@ -4,6 +4,7 @@
 -- data/FleetOps/cars_fleet_expansion.csv is intentionally excluded (superseded note, not data).
 -- =============================================================
 
+-- Snowsight Workspace only. From the local CLI use scripts/stage_source_files.sh instead.
 COPY FILES INTO @RENTAL_OPS.BRONZE.LANDING
 FROM 'snow://workspace/USER$.PUBLIC."snowflake-cortex-rental-operations-ai-agent"/versions/live/data/'
 FILES = (

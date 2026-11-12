@@ -1,0 +1,5 @@
+.snowflake/cache/compaction
+.venv/
+.vscode/
+
+cost-tracking/

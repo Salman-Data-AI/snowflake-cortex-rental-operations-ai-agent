@@ -18,6 +18,7 @@ CREATE FILE FORMAT IF NOT EXISTS FF_CSV
 
 -- Copy the source file from the workspace data/ folder to the landing stage
 -- (lands as Unstructured/<file> on the stage: path is relative to the FROM folder)
+-- Snowsight Workspace only. From the local CLI use scripts/stage_source_files.sh instead.
 COPY FILES INTO @RENTAL_OPS.BRONZE.LANDING
 FROM 'snow://workspace/USER$.PUBLIC."snowflake-cortex-rental-operations-ai-agent"/versions/live/data/'
 FILES = ('Unstructured/reviews.csv');
