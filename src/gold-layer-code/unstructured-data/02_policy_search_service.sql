@@ -1,6 +1,6 @@
 -- =============================================================
 -- Gold Layer | Cortex Search service over policy document chunks
--- Source: RENTAL_OPS.GOLD.policy_document_chunks (35 header-split chunks, <=512 tokens)
+-- Source: RENTAL_OPS.GOLD.policy_document_chunks (42 chunks, c2_structure, <=512 tokens)
 -- Prereq: gold-layer-code/unstructured-data/01_policy_document_chunks.sql
 -- Search column : search_text (title | section + chunk text + doc2query questions, v1).
 --                 v0 indexed chunk_text_with_context; chunk_text is still returned for citation.
@@ -38,7 +38,7 @@ AS (
     FROM RENTAL_OPS.GOLD.policy_document_chunks
 );
 
--- Validate: service state and indexed row count (expect 35)
+-- Validate: service state and indexed row count (expect 42)
 DESCRIBE CORTEX SEARCH SERVICE RENTAL_OPS.GOLD.policy_search;
 
 -- Smoke test: filtered query

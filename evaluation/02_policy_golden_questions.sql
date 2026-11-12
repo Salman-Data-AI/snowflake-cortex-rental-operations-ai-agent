@@ -21,6 +21,9 @@
 --   gq_v2 : + pq_26-pq_34 harder casual/paraphrase questions (sections not yet covered,
 --           wording far from the policy text) + pq_35-pq_38 near-miss out-of-scope questions
 --           (topic sounds covered, answer is not) -> 38 questions (30 answerable, 8 out-of-scope)
+-- Labels per chunking_version (questions unchanged, so dataset_version stays gq_v2):
+--   c2_structure (Phase 2b): the loyalty FAQ is one chunk per Q and A; pq_16 / pq_17 / pq_30 were
+--   re-derived from expected_evidence (the validation query below); section = the FAQ question.
 -- =============================================================
 
 CREATE OR REPLACE TABLE RENTAL_OPS.EVALUATION.policy_golden_questions (
@@ -140,16 +143,16 @@ FROM VALUES
  '["unpaid tolls are billed to the card on file plus a $15 administrative fee per toll event"]',
  'Unpaid tolls are billed to your card on file plus a $15 administrative fee per toll event.',
  NULL),
--- ---------- Loyalty Program FAQ (single chunk) ----------
+-- ---------- Loyalty Program FAQ (one chunk per Q and A since c2_structure) ----------
 ('pq_16', 'How many Avelto Miles points do I earn for each day I rent?',
- 'direct', TRUE, 'loyalty_program_faq', 'Overview',
- '["loyalty_program_faq_00"]',
+ 'direct', TRUE, 'loyalty_program_faq', 'What is Avelto Miles?',
+ '["loyalty_program_faq_01"]',
  '["Members earn 10 points per day rented, regardless of category"]',
  '10 points per day rented, in any category (plus 500 bonus points per completed one-way rental).',
- 'Whole FAQ is one chunk'),
+ 'FAQ Q and A chunk (whole FAQ was one chunk before c2_structure)'),
 ('pq_17', 'Do my reward points ever run out?',
- 'casual', TRUE, 'loyalty_program_faq', 'Overview',
- '["loyalty_program_faq_00"]',
+ 'casual', TRUE, 'loyalty_program_faq', 'Do points expire?',
+ '["loyalty_program_faq_04"]',
  '["Points expire after 24 months of account inactivity (no rentals or point redemptions)"]',
  'Yes, points expire after 24 months with no rentals or point redemptions.',
  '"reward points" vs "Avelto Miles"'),
@@ -204,8 +207,8 @@ FROM VALUES
  'A full refund plus a 1,000-point Avelto Miles credit, regardless of the cancellation timing rules.',
  'Covers a section not used in gq_v1'),
 ('pq_30', 'Can I give my reward points to my partner?',
- 'casual', TRUE, 'loyalty_program_faq', 'Overview',
- '["loyalty_program_faq_00"]',
+ 'casual', TRUE, 'loyalty_program_faq', 'Can points be transferred between accounts?',
+ '["loyalty_program_faq_07"]',
  '["Avelto Miles points are non-transferable and tied to the account that earned them"]',
  'No, Avelto Miles points are non-transferable and stay with the account that earned them.',
  '"give" vs "non-transferable"'),
