@@ -60,8 +60,8 @@ the extended golden set (`gq_v2`, 38 questions) changed that picture:
 | 0 | Claude Code setup (CLAUDE.md, snow CLI, staging script, allowlist, cost tracking) | — | **Done** |
 | 1 | Evaluation framework + golden set `gq_v1` → `gq_v2` + baseline | `v0_baseline` | **Done** |
 | 2 | doc2query: generated questions per chunk in Silver, carried to Gold, service rebuilt, eval run vs v0 | `v1_doc2query` | **Done** (reference setup) |
-| 2a | Held-out evaluation set for calibration: questions not written while looking at the pipeline (primary source: real customer phrasing in the support tickets), labelled from evidence spans; calibration metrics (separation, overlap, AUC of the rank-1 score) measured on it for v1 | — (new `dataset_version`) | **Next** |
-| 2b | Chunk-quality hardening: structure-aware split (FAQ → one chunk per question), size target, quality flags in Silver; labels re-derived from evidence spans; regenerate doc2query for changed chunks | `v1b_chunking` | Planned (after 2, see note) |
+| 2a | Held-out evaluation set for calibration: questions not written while looking at the pipeline (primary source: real customer phrasing in the support tickets), labelled from evidence spans; calibration metrics (separation, overlap, AUC of the rank-1 score) | `v1b_chunking_ho` (`ho_tickets_v1`) | **Done** (reduced scope, v1b only; see results) |
+| 2b | Chunk-quality hardening: structure-aware split (FAQ → one chunk per question), size target, quality flags in Silver; labels re-derived from evidence spans; regenerate doc2query for changed chunks | `v1b_chunking` | **Done** on the golden set (run before 2a; held-out comparison pending 2a) |
 | 3 | Grounded answer generation (agent or `AI_COMPLETE` over retrieved chunks) with explicit "not covered" abstention + answer-level evaluation (correctness vs `expected_answer`, groundedness, abstention on the 8 out-of-scope questions) | `a1_grounded_answer` | Planned (Step 5 brought forward) |
 | 4 | *Conditional:* query rewrite + fusion (old Step 4), only if Phase 3 shows out-of-scope answers or casual misses | `v2_query_rewrite` | **Conditional** (old Step 4 retired) |
 | Later | Semantic View + Cortex Analyst over the Gold star schema; Cortex Agent combining Analyst + Search | — | Separate planning |
@@ -98,6 +98,80 @@ re-derived from `expected_evidence` with the existing validation query; no hand 
 - Objects: `SILVER.policy_chunk_generated_questions`, `GOLD.policy_document_chunks` (+ questions,
   `search_text`; suspended), `GOLD.policy_search` (indexes `search_text`); runs in
   `evaluation/07_run_v1_doc2query.sql`.
+
+## Phase 2b results (`v1b_chunking` vs `v1_doc2query`, gq_v2)
+
+Run on 2026-11-12, before Phase 2a (at the user's request). This is the golden-set regression
+check; the calibration comparison on the held-out set follows once 2a exists.
+
+| | v1 (`c1_header`) | v1b (`c2_structure`) |
+|---|---|---|
+| Chunks / median / max tokens | 35 / 82 / 491 | 42 / 81 / 183 (8 FAQ chunks, one per Q and A) |
+| Max indexed `search_text` tokens | ~550 (> 512) | 261 |
+| Quality-flagged chunks | (FAQ would be multi-topic) | 0 |
+| hit@1 / hit@5 / MRR (30 answerable) | 0.967 / 0.967 / 0.967 | 0.967 / **1.000** / 0.978 (no hit@1 flip) |
+| pq_05 rank (whole-corpus depth) | 17 | **3** (rank 1 still `rental_agreement_terms_02`, score −3.90) |
+| pq_16 / pq_17 / pq_30 rank-1 score | 2.88 / −5.51 / −8.09 | 2.50 / −2.35 / **−4.37** |
+| Rank-1 score, answerable hits: min / median / max | −8.09 / −1.25 / 2.88 | **−5.83** / −1.25 / 2.71 |
+| Rank-1 score, out-of-scope: min / median / max | −10.99 / −9.64 / −6.62 | −10.99 / −9.64 / −6.54 |
+| Separation (min answerable hit − max out-of-scope) | −1.47 (overlap) | **+0.71** (no overlap on this set) |
+
+- The split removes the dilution problem: the FAQ questions about minor answers gain +3.2 to +3.7;
+  pq_16 (main topic of the old chunk) loses 0.38 and stays rank 1.
+- Separation turns positive only because pq_30 (no leak) left the overlap zone; the new minimum
+  (−5.83) is a non-FAQ question. With 30 + 8 questions this is a hint, not a calibrated threshold;
+  confirm on the held-out set (2a). Excluding the 4 leak-flagged questions changes nothing.
+- Leakage (new FAQ questions): none flagged. pq_17 is borderline (cosine 0.875, JW 88 against
+  "Do my rewards points expire?" on its expected chunk), so part of its +3.15 may be wording overlap.
+- Out-of-scope near-misses: pq_38 (fuel at partner stations) now hits `faq_01` at −6.54 (+0.08);
+  pq_25 (electric cars) moved to `faq_05` at −10.29. No near-miss gained materially.
+- pq_05 moving from rank 17 to 3 is **not explained** by the change (its chunks are byte-identical);
+  most likely the keyword index's corpus statistics shifted with 7 extra chunks. Treat the hit@5 gain
+  as incidental, not as a chunking effect.
+- Generation: 8 new chunks × 4 questions (`claude-sonnet-4-5`, `d2q_p1`), 34 rows reused.
+- Ops note: the snow CLI's legacy templating reads `&name` in SQL files (including comments) as a
+  variable; write "Q and A", not the ampersand form, in scripts run with `snow sql -f`.
+- Objects: `SILVER.policy_document_chunks` (+ `chunking_version`, quality flags),
+  `GOLD.policy_document_chunks` (+ `chunking_version`, `is_quality_flagged`; suspended),
+  `GOLD.policy_search` (42 rows); runs in `evaluation/08_run_v1b_chunking.sql`.
+
+## Phase 2a results (held-out `ho_tickets_v1`, setup v1b)
+
+Scope reduced on 2026-11-12: the data holds only ~15 ticket templates (300 tickets) and a handful of
+policy-relevant review templates, so the set is one verbatim instance per template (PII removed),
+22 queries: 11 ticket + 3 review answerable, 8 out-of-scope (incl. one German, one French review).
+No hand-written or LLM-generated questions. v1 was not measured (its index was replaced in 2b).
+Objects: `EVALUATION.policy_holdout_questions`, view `EVALUATION.policy_eval_questions`,
+procedure parameter `question_set`; scripts `evaluation/09_` and `10_`.
+
+| | Golden (gq_v2) | Held-out (ho_tickets_v1) |
+|---|---|---|
+| hit@1 / hit@3 / MRR | 0.967 / 1.000 / 0.978 | **0.643** / 0.929 / 0.750 |
+| Rank-1 score, answerable hits: min / median | −5.83 / −1.25 | −10.44 / **−8.78** |
+| Rank-1 score, out-of-scope: max / median | −6.54 / −9.64 | **−5.74** / −9.50 |
+| Separation | +0.71 | **−4.70** |
+| AUC answerable vs OOS / correct rank 1 vs rest | 1.000 / 0.981 | **0.625 / 0.624** |
+| At golden cut-off −6.18: false abstain / OOS answered | 0 / 0 | **7 of 9 hits / 1 of 8** |
+| Max cosine to golden or generated questions | — | 0.753 (independent) |
+
+- **The golden-set cut-off does not transfer.** Ticket-style input (requests, reservation numbers,
+  "ASAP", complaints) scores ~7 points lower than curated questions for the *same* correct chunk,
+  while out-of-scope tickets score about the same as golden out-of-scope questions. The reranker
+  score reflects query form as much as answerability, so a fixed score threshold is not usable as
+  the abstention mechanism, and no lower floor exists either (answerable down to −10.44, OOS to −10.46).
+- The highest-scoring held-out query is out-of-scope: ho_15 (account login) → FAQ "check balance"
+  (customer portal) at −5.74.
+- **Retrieval still finds the answer:** hit@3 = 0.93; only ho_08 (rank 6) misses the top 5.
+  Two of the five hit@1 misses are arguably label strictness, not errors: ho_08 / ho_09 rank
+  roadside "What to Do" first (contact Support with reservation number), ho_06 ranks "How to Request
+  a Refund" first. Labels were left unchanged after seeing results (changing them would tune on the
+  held-out set); revisit only with a rule written before looking at scores. Real misses: ho_10
+  (check-engine light → pickup inspection), ho_12 (overcharged days → replacement-vehicle refund).
+- Consequences for Phase 3: (1) abstention must be decided by the answer step (LLM judges whether
+  the retrieved text addresses the request), not by a score threshold; (2) pass top 3-5 chunks,
+  not top 1; (3) evaluate Phase 3 on both sets (golden + held-out), since they behave differently.
+  (4) Query rewrite (Phase 4: turn a ticket into a question) now has evidence in its favour; it
+  stays conditional, but the held-out set is the place to test it.
 
 ## What each phase must report
 

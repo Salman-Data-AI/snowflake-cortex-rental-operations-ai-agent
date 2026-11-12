@@ -1,6 +1,6 @@
 -- =============================================================
 -- Evaluation | Step 04: Summary view, one row per run x question_style (+ 'ALL')
--- Prereq: evaluation/02_..., evaluation/03_...
+-- Prereq: evaluation/02_..., evaluation/03_..., evaluation/09_... (view policy_eval_questions)
 -- Rank metrics (hit@k, MRR, precision@3, recall@5) average over answerable questions only;
 -- oos_rejection_rate averages correctly_rejected over out-of-scope questions only.
 -- question_style = 'ALL' is the overall row; per-style rows follow.
@@ -11,7 +11,7 @@ CREATE OR REPLACE VIEW RENTAL_OPS.EVALUATION.policy_retrieval_summary AS
 WITH r AS (
     SELECT r.*, q.question_style, q.is_answerable
     FROM RENTAL_OPS.EVALUATION.policy_retrieval_results r
-    JOIN RENTAL_OPS.EVALUATION.policy_golden_questions q USING (question_id)
+    JOIN RENTAL_OPS.EVALUATION.policy_eval_questions q USING (question_id)
 )
 SELECT
     run_id,
