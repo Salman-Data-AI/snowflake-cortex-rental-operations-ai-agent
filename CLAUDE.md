@@ -61,4 +61,5 @@ Originally built through Snowflake CoCo; SQL in `src/` is the record of what is 
 - Gold: Dynamic Tables, `TARGET_LAG = '3 minutes'`, `REFRESH_MODE = INCREMENTAL`, no AI calls.
 - Cortex Search: legacy `SNOWFLAKE.CORTEX.EMBED_TEXT_*` is blocked on this account, so use user-provided vectors via
   `AI_EMBED('snowflake-arctic-embed-l-v2.0', ...)` + `VECTOR INDEXES col (query_model = ...)`; chunks are kept <= 512 tokens.
-- Eval runs are tagged with a `setup_version` (`v0_baseline`, `v1_doc2query`, `v2_query_rewrite`).
+- Eval runs are tagged with a `setup_version` (`v0_baseline`, `v1_doc2query` = current reference, `v1b_chunking`, ...).
+- Calibration and design choices are tuned on a held-out set, never on the golden set (leakage); the golden set is a regression check.

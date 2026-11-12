@@ -181,7 +181,14 @@ Cortex Search returns three scores per result in `@scores`:
 | `reranker_score` | A dedicated relevance model's judgment of the (question, chunk) pair. Unbounded, higher = more relevant |
 
 We store the rank-1 `reranker_score` as `top_reranker_score`. On its own it is not a metric;
-it is the **input for the Step 4 rejection threshold**.
+it is the **confidence signal we calibrate** (originally planned as the input for a Step 4
+rejection threshold, now retired; abstention moves to answer generation).
+
+The score is an unbounded relevance logit, so its sign alone means little; what matters is
+*separation*: how far correct hits sit above near-misses, and whether the two ranges overlap.
+On v0 the median correct hit scored −3.94; v1 (doc2query) raised it to −1.25 while out-of-scope
+questions barely moved (§7). Calibration is optimised on a held-out set, not on this golden set
+(plan 02, decision 7).
 
 On `gq_v1` there was a clean gap (answerable ≥ −5.59, out-of-scope ≤ −8.18), so any cut-off in
 between looked perfect. **`gq_v2` showed that gap was an artifact of easy questions:**
@@ -223,6 +230,7 @@ strictly sorted by reranker score; in the baseline, ranks 4 and 5 occasionally i
 | The scorecard | view `policy_retrieval_summary` | `evaluation/04_policy_retrieval_summary.sql` |
 | Ask, then grade (two-phase, retriever-pluggable) | procedure `run_policy_retrieval_eval` | `evaluation/05_run_policy_retrieval_eval.sql` |
 | Baseline run + diagnosis + threshold calibration | 2 CALLs + 3 report queries | `evaluation/06_run_v0_baseline.sql` |
+| doc2query run, v0 vs v1 deltas, flips, score shift, leakage check | 2 CALLs + 4 report queries | `evaluation/07_run_v1_doc2query.sql` |
 
 ### 5.2 `policy_golden_questions` (the exam)
 
@@ -331,6 +339,26 @@ What the framework surfaced that ad-hoc testing would not:
 - **Ranking headroom is still small** (one miss in 30). The more valuable targets for v1/v2 are
   raising the confidence of correct hits and rejecting near-misses.
 
+doc2query (`v1_doc2query`, top_k = 5), now the reference setup:
+
+| | v0 | v1 |
+|---|---|---|
+| hit@1 = hit@5 = MRR (30 answerable) | 0.967 | 0.967 (no flips) |
+| pq_05 rank (depth 35) | 24 | 17 |
+| Median rank-1 score: answerable hits / out-of-scope | −3.94 / −9.26 | −1.25 / −9.64 |
+| Lowest answerable hit vs highest out-of-scope | −8.36 vs −6.87 | −8.09 vs −6.62 (still overlap) |
+
+- **doc2query improved confidence, not ranking.** Correct hits gained +1.57 (median, non-leaked)
+  while out-of-scope questions gained +0.22, widening the median gap from 5.3 to 8.4.
+- **It did not fix the vocabulary-gap miss.** pq_05's chunk got a well-matching generated question
+  (cosine 0.82 to the golden question), but four appended questions are diluted inside one chunk
+  embedding, and another chunk's question ("running late") won rank 1.
+- **The leakage check found 4 near-copies** (pq_19 0.996, pq_10 0.97, pq_11 0.956 on the expected
+  chunk; pq_06 0.915 on a wrong chunk). They were rank 1 already, so metrics are not inflated, but
+  the golden set is now mildly contaminated for any doc2query-based variant.
+- **The golden set is saturated for ranking.** Further comparisons of retrieval designs, and all
+  calibration work, use a held-out set (plan 02, Phase 2a); the golden set stays a regression check.
+
 ---
 
 ## 8. Advantages and disadvantages
@@ -352,6 +380,7 @@ What the framework surfaced that ad-hoc testing would not:
 
 | Limitation | Effect | Mitigation |
 |---|---|---|
+| **Saturated + mildly contaminated after v1** (29/30 at rank 1; 4 near-copies among generated questions) | Cannot show further ranking gains; doc2query variants would be graded partly on seen questions | Held-out set for design/calibration decisions (plan 02, Phase 2a); report golden results with and without the leak-flagged questions |
 | **Small dataset** (30 answerable, 8 out-of-scope) | One question flips hit@1 by ~3 points; small differences are noise | Compare *which questions* flipped, not only averages; grow the set as real questions appear |
 | **Author bias** | Questions written by people (and an assistant) who know the documents may be easier than real customer questions | Many casual/near-miss questions; replace or extend with real support-ticket phrasing later |
 | **Binary relevance** | A chunk is either correct or not; a partially helpful chunk scores 0 | Acceptable for short, section-sized chunks; multi-chunk labels where two sections both answer |
@@ -380,7 +409,8 @@ What the framework surfaced that ad-hoc testing would not:
 
 | Step | Change to the pipeline | Change to the evaluation |
 |---|---|---|
-| 3: doc2query (`v1_doc2query`) | Silver adds AI-generated questions per chunk; search index rebuilt | None. Run the procedure with a new setup_version; also check generated questions are not near-copies of golden questions (leakage) |
+| 3: doc2query (`v1_doc2query`) — **done** | Silver adds AI-generated questions per chunk; search index rebuilt | None. Ran the procedure with a new setup_version; leakage check in `07_…` (4 near-copies found) |
+| 2a: held-out set (planned) | None | New `dataset_version` written independently of the pipeline (support-ticket phrasing); calibration metrics on it |
 | 2b: chunk hardening (`v1b_chunking`) | Structure-aware split (FAQ → one chunk per question), quality flags; see `02_chunking_guidelines.md` | None. Re-derive `expected_chunk_ids` from `expected_evidence` with the validation query in `02_…`, then run as usual |
 | 3 (was Step 5, brought forward): grounded answers (`a1_grounded_answer`) | The agent answers from retrieved chunks and says "not covered" when they don't answer | Grade answers against `expected_answer` (correctness, groundedness) and measure abstention on the out-of-scope questions; keep these retrieval results as ground truth |
 | ~~4: query rewrite (`v2_query_rewrite`)~~ (**retired; conditional only**) | New `policy_search_retrieve` function: rewrite, fuse, threshold | Only if Phase 3 shows out-of-scope answers or casual misses: add one retriever branch in phase 1; grading unchanged |

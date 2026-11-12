@@ -1,6 +1,6 @@
 # 01 — Policy RAG: Retrieval Evaluation & Improvement
 
-> **Status (2026-11-12):** Steps 1–2 done. Step 3 is next. **Step 4 is RETIRED** as a planned step (kept as a conditional option) and **Step 5 is brought forward**. Current roadmap: `docs/plans/02_policy_rag_roadmap_revision.md`.
+> **Status (2026-11-12):** Steps 1–3 done (Step 3 = `v1_doc2query`, the reference setup). Next: held-out set (plan 02, Phase 2a). **Step 4 is RETIRED** as a planned step (kept as a conditional option) and **Step 5 is brought forward**. Current roadmap: `docs/plans/02_policy_rag_roadmap_revision.md`.
 
 Incremental build plan for improving retrieval quality of the policy documents
 RAG pipeline, measured against a golden dataset at every step.
@@ -35,7 +35,7 @@ vocabulary mismatch between user phrasing and policy wording.
 |---|---|---|
 | 1 | Baseline search service (already built) — ✅ done | Commit current `src/` scripts |
 | 2 | Golden dataset + results table + eval procedure + baseline run (`v0_baseline`) — ✅ done (`gq_v2`) | Commit `evaluation/` |
-| 3 | Option A — ingestion-side question generation, service rebuild, eval run (`v1_doc2query`) — ▶ next | Commit `src/` + `evaluation/` |
+| 3 | Option A — ingestion-side question generation, service rebuild, eval run (`v1_doc2query`) — ✅ done | Commit `src/` + `evaluation/` |
 | ~~4~~ | ~~Option B — query-side rewrite + fusion + relevance threshold, eval run (`v2_query_rewrite`)~~ — ⛔ retired (conditional only, see plan 02) | — |
 | 5 | TruLens / AI Observability once the agent generates answers — ⏫ brought forward (plan 02, Phase 3) | — |
 

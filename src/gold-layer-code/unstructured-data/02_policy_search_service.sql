@@ -2,7 +2,8 @@
 -- Gold Layer | Cortex Search service over policy document chunks
 -- Source: RENTAL_OPS.GOLD.policy_document_chunks (35 header-split chunks, <=512 tokens)
 -- Prereq: gold-layer-code/unstructured-data/01_policy_document_chunks.sql
--- Search column : chunk_text_with_context (title | section + chunk text)
+-- Search column : search_text (title | section + chunk text + doc2query questions, v1).
+--                 v0 indexed chunk_text_with_context; chunk_text is still returned for citation.
 -- Filter attr   : document_type (e.g. 'Customer-facing policy')
 -- TARGET_LAG 1 day: policy library rarely changes. Worst-case staleness is
 -- service lag + Gold DT lag (3 min) after a Silver reload.
@@ -16,16 +17,16 @@
 -- =============================================================
 
 CREATE OR REPLACE CORTEX SEARCH SERVICE RENTAL_OPS.GOLD.policy_search
-  TEXT INDEXES chunk_text_with_context
-  VECTOR INDEXES chunk_embedding (query_model = 'snowflake-arctic-embed-l-v2.0')
+  TEXT INDEXES search_text
+  VECTOR INDEXES search_embedding (query_model = 'snowflake-arctic-embed-l-v2.0')
   PRIMARY KEY (chunk_id)
   ATTRIBUTES document_type
   WAREHOUSE = COMPUTE_WH
   TARGET_LAG = '1 day'
 AS (
     SELECT
-        chunk_text_with_context,
-        AI_EMBED('snowflake-arctic-embed-l-v2.0', chunk_text_with_context) AS chunk_embedding,
+        search_text,
+        AI_EMBED('snowflake-arctic-embed-l-v2.0', search_text) AS search_embedding,
         document_type,
         -- returned with results for citations / display (not searchable, not filterable)
         chunk_id,
