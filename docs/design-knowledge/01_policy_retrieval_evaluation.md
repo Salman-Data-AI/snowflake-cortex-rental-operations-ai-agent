@@ -78,7 +78,8 @@ with the same rules.
  └──────────────────────────────────┘
 ```
 
-Each run is tagged with a **setup_version** that names the retrieval setup being tested:
+Each run is tagged with a **setup_version** that names the retrieval setup being tested
+(`v*`; answer-level runs use a separate `a*` sequence on top of a `v*` setup: doc 03 §7.4):
 
 | setup_version | What is being tested | Status |
 |---|---|---|

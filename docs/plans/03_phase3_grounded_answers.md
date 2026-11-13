@@ -132,7 +132,7 @@ With only 60 labelled queries there is no separate tuning set. Rules:
 |---|---|---|
 | **3.0** | Confirm models available in the account/region (generator, judge) and that `AI_COMPLETE` returns token usage | **Done**: see Gate 3.0 results |
 | **3.1** | DDL: `GOLD.answer_policy_question`, `EVALUATION.policy_answer_results` (with cache), eval procedure; CLAUDE.md serving-layer note; smoke test on 3 questions (1 answerable, 1 ticket, 1 OOS), run twice (schema vs plain JSON) | ≈ 0.03–0.04 cr |
-| **3.2** | Generation run `a1_grounded_answer` on golden + held-out (60 calls); deterministic metrics report; review answers | ≈ 0.10–0.2 cr (60 × ~1–2k in / ~150 out tokens, depending on the A/B) + warehouse |
+| **3.2** | **Done** (2026-11-13): generation run `a1_grounded_answer` (+ `_holdout`) on golden + held-out (60 questions, 57 live calls); deterministic metrics report; see Gate 3.2 results | ≈ 0.10–0.2 cr (60 × ~1–2k in / ~150 out tokens, depending on the A/B) + warehouse |
 | **3.3** | Judge run (≈ 45 calls, both metrics per call) + human review of every verdict; judged metrics + agreement | ≈ 0.10–0.15 cr; your review time ~20 min |
 | **3.4** | Report + decide next: Phase 4 trigger check (below), CLAUDE.md rule note, design-knowledge doc for answer eval | ~0 |
 
@@ -162,6 +162,48 @@ Implications for the build:
 - The JSON schema itself costs ~700 prompt tokens per Claude call (747 tokens for a ~60-token
   prompt). Revised estimate per generation call ≈ 1.5–2k prompt + ~150 completion tokens.
 - All schemas set `"additionalProperties": false` (required by OpenAI, accepted by Claude).
+
+### Gate 3.2 results (2026-11-13): headline run, prompt `ga_p1`
+
+Script `evaluation/14_run_a1_grounded_answer.sql`, run in one batch with the redeploy of 03, 11 (new
+column `retrieval_setup`) and 12. Runs: `a1_grounded_answer` (golden), `a1_grounded_answer_holdout`
+(held-out; renamed from `_ho` before the run). Retrieval `v1b_chunking`, top 5,
+`claude-sonnet-4-5`, plain JSON. Run ids `691f0d9e…` (golden), `fbc4bc29…` (held-out).
+
+| Metric | Golden (38) | Held-out (22) | Target golden / held-out |
+|---|---|---|---|
+| Failed calls (plain JSON) | **0** | **0** | 0 |
+| Cache hits (Gate 3.1 smoke rows) | 2 | 1 | |
+| OOS abstention | **8/8** | **7/8** | ≥ 7/8 / ≥ 6/8 ✅ |
+| False abstention | **0/30** | **2/14** (14%) | ≤ 10% / ≤ 20% ✅ |
+| Citation validity | **38/38** | **22/22** | 100% ✅ |
+| Citation hit (answered + answerable) | 30/30 | 11/12 | reported |
+| Expected chunk in top 5 | 30/30 | 13/14 | (retrieval) |
+| Avg prompt / completion tokens (uncached) | 898 / 89 | 934 / 100 | |
+| Total tokens | 32,331 / 3,195 | 19,615 / 2,109 | |
+| LLM latency p50 / max | 2.8 s / 4.2 s | 3.1 s / 5.2 s | |
+| End-to-end p50 (search + LLM) | 4.3 s | 4.6 s | |
+
+Flagged rows (all held-out; golden has none):
+
+| Row | Label | Outcome | Expected chunk in top 5 | Side | Note |
+|---|---|---|---|---|---|
+| ho_01 | answerable (license rule) | `not_covered` | yes | answer step | Ticket asks for an action ("confirm it's updated"); the label expects the rule behind it (valid license on file before pickup). The model abstained on the action. |
+| ho_07 | answerable (category not provided) | `not_covered` | yes | answer step | "Model didn't match what we booked". The policy speaks of the reserved *category*; the model read model ≠ category as not covered. Label kept (no label edits after seeing answers); disputable. |
+| ho_08 | answerable (roadside, dead battery) | answered, cites `roadside_assistance_guide_02` + `insurance_damage_waiver_04` | **no** (`_01` missed) | retrieval | Answer looks substantively right (contact Support, breakdowns covered); the judge decides correctness in 3.3. |
+| ho_21 | OOS (wait time + dirty interior, review) | answered (partial) | — | answer step | Near-miss: answered the cleanliness part from the cleaning-fee / walk-through text and listed wait time as uncovered. |
+
+Observations:
+- Golden is perfect on every deterministic metric. Held-out meets both targets. The 3 answer-step
+  failures share one class: **ticket-style requests where the policy gives the rule behind an
+  action or covers only part of the complaint**. Two are over-cautious (ho_01, ho_07), one is
+  over-eager (ho_21). This is the candidate class for `ga_p2` (decided in Gate 3.4, after judging).
+- Only 1 retrieval-side failure (ho_08), and its answer still looks usable. On deterministic
+  numbers alone, the Phase 4 trigger (false abstention > 20%) is not met. Correctness is still pending (3.3).
+- Plain-mode JSON: 57 live calls, **0 parse failures** (D9 confirmed at scale).
+- `uncovered_parts` is empty on `not_covered` rows: the model puts the explanation in `answer`.
+  Harmless for metrics; noted for the judge prompt.
+- AI cost (estimate until the usage views catch up): 51.9k prompt + 5.3k completion tokens over 57 calls.
 
 ## 4. Decision criteria (fixed now, before results)
 

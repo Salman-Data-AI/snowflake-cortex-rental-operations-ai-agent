@@ -8,12 +8,12 @@ the trade-off was made.
 | | |
 |---|---|
 | **Applies to** | `RENTAL_OPS.GOLD.answer_policy_question`, `GOLD.policy_answer_cache`, `EVALUATION.policy_answer_results`, `EVALUATION.run_policy_answer_eval` |
-| **Implemented in** | `src/gold-layer-code/unstructured-data/03_…`, `evaluation/11_…` to `13_…` |
+| **Implemented in** | `src/gold-layer-code/unstructured-data/03_…`, `evaluation/11_…` to `14_…` |
 | **Plans** | `docs/plans/02_policy_rag_roadmap_revision.md` (why), `docs/plans/03_phase3_grounded_answers.md` (how, gates) |
 | **Companion docs** | `01_policy_retrieval_evaluation.md` (retrieval metrics), `02_chunking_guidelines.md` |
-| **Status** | Gate 3.1 done (2026-11-13): built + smoke-tested. Full runs (3.2), judge (3.3) and report (3.4) pending |
+| **Status** | Gate 3.2 done (2026-11-13): headline run on golden + held-out, all deterministic targets met. Judge (3.3) and report (3.4) pending |
 
-**Last updated:** 2026-11-13 (after Gate 3.1)
+**Last updated:** 2026-11-13 (after Gate 3.2)
 
 ## Implementation map
 
@@ -24,6 +24,8 @@ the trade-off was made.
 | Per-question answer results + deterministic metrics | `EVALUATION.policy_answer_results` | `evaluation/11_policy_answer_results.sql` |
 | Answer eval procedure (loop + scoring insert) | `EVALUATION.run_policy_answer_eval` | `evaluation/12_run_policy_answer_eval.sql` |
 | Gate 3.1 smoke test + schema/plain A/B + cache check | runs `a1_smoke_*` | `evaluation/13_run_a1_smoke.sql` |
+| Gate 3.2 generation run + deterministic report | runs `a1_grounded_answer`, `a1_grounded_answer_holdout` | `evaluation/14_run_a1_grounded_answer.sql` |
+| Which retrieval setup an answer run sits on (§7.4) | column `policy_answer_results.retrieval_setup`, procedure arg `retrieval_setup` | `evaluation/11_…`, `evaluation/12_…` |
 | Question sets used (golden + held-out union) | view `EVALUATION.policy_eval_questions` | `evaluation/09_policy_holdout_questions.sql` |
 | Retrieval being consumed | `GOLD.policy_search` | `src/gold-layer-code/unstructured-data/02_policy_search_service.sql` |
 | Serving-layer rule (AI calls in GOLD procedures only) | — | `CLAUDE.md` "SQL conventions" |
@@ -59,6 +61,8 @@ and `policy_answer_results`.
 | **D7** | Cost controls (plan 03 §2.2a) | Each eval rerun pays for every LLM call again | 60 questions × reruns while iterating would add up | Input-hash **answer cache**; one judge call per answered row; batch each gate in one script; A/B the JSON format before full runs |
 | **D8** | Gate 3.1 build | Cache in the eval table, keyed on question + chunk ids | Building it showed a better place and key (§5) | Cache lives in **GOLD**, used by the answer procedure itself; key = **hash of the full prompt** |
 | **D9** | Gate 3.1 A/B: schema vs plain JSON | The schema is needed for reliable JSON | Plain parsed **3/3**, same decisions, **~885 vs ~1,600** prompt tokens (§6) | Use **plain** for Phase 3 runs, with stricter validation; measure the failure rate on 60 calls. A schema fallback was considered and **not built** (§6.4) |
+| **D10** | Gate 3.2 setup naming | Answer runs continue the `v*` sequence (v1 → a1) | They are a second axis: an answer setup sits on top of one retrieval setup, and either can change alone. The answer table had no column saying which retrieval was underneath | `a*` = answer setups, `v*` = retrieval setups; new column **`retrieval_setup`**; held-out runs get suffix **`_holdout`** (§7.4) |
+| **D11** | Gate 3.2 headline run (`ga_p1`, 60 questions) | Ticket wording might break the LLM's decision the way it broke the score (D5) | Golden: OOS 8/8, false abstention 0/30, citations 38/38 valid. Held-out: OOS **7/8**, false abstention **2/14**, citations 22/22 valid; 0 JSON failures in 57 live calls. Failures: 3 answer-step (ho_01, ho_07 over-cautious; ho_21 near-miss answered), 1 retrieval (ho_08, answer still plausible) | The LLM decision transfers to tickets where the score did not (AUC 0.62 → 7/8 + 12/14 correct decisions). No change yet: the first run is the headline (§7.3). Failure class for a possible `ga_p2`: "request for an action whose policy rule exists / partial coverage", decided in 3.4 after judging |
 
 The thread through all of it: **every time a clean-looking result came from a small or curated set,
 a harder or independent set broke it** (D1 → D2, D4 → D5). That is why the held-out set now judges
@@ -295,6 +299,30 @@ and **the first run is the headline result**; at most one prompt revision, only 
 labels are never changed after seeing answers. The smoke-test questions (pq_01, ho_06, pq_35) were
 used to test plumbing only, not to adjust the prompt.
 
+### 7.4 Setup naming: `v*` retrieval setups, `a*` answer setups (D10, Gate 3.2)
+
+Two evaluation layers, two tables, two version sequences:
+
+| Prefix | Layer | What changes between versions | Table | Versions |
+|---|---|---|---|---|
+| `v*` | Retrieval: is the right chunk in the top k? | Index content, chunking, query handling | `EVALUATION.policy_retrieval_results` | `v0_baseline` → `v1_doc2query` → `v1b_chunking` (current); `v2_query_rewrite` reserved for Phase 4 |
+| `a*` | Answer: given the retrieved chunks, answer or abstain correctly, cite validly | Model, prompt, output mode, top_k | `EVALUATION.policy_answer_results` | `a1_grounded_answer` (Sonnet 4.5, `ga_p1`, plain, top 5); planned: `a1_haiku`, `ga_p2` if needed, top 3 |
+
+- `a1` is not "the version after `v1b`". It is the first answer setup, built on `v1b_chunking`.
+  A letter suffix (`a1_haiku`) marks a variant of the same answer design. A new number (`a2`) marks a
+  new answer design.
+- Each answer row stores **`retrieval_setup`** (the `v*` underneath). If Phase 4 brings `v2`, answer
+  runs on it are comparable to `a1` with only the retrieval changed. Before Gate 3.2 this link
+  existed only in the plan document. The column was added with `ADD COLUMN IF NOT EXISTS ... DEFAULT
+  'v1b_chunking'`, which also backfilled the Gate 3.1 smoke rows (correct: they ran on v1b).
+  It is a label supplied to the eval procedure, not read from the search service. A wrong label is
+  possible if someone forgets to pass it after a retrieval change. Alternative considered: derive it
+  from the service. Rejected: Cortex Search exposes no version tag, and retrieval is changed rarely.
+- **Suffixes:** one `setup_version` per question set, because reports take the latest run per
+  `setup_version`. Golden = no suffix. Held-out = **`_holdout`** (spelled out at the user's request,
+  Gate 3.2). The Phase 2a retrieval run `v1b_chunking_ho` predates this and keeps its name (history
+  is not renamed). Smoke runs: `a1_smoke_*`.
+
 ---
 
 ## 8. Pros and cons of LLM abstention (vs a score threshold)
@@ -309,9 +337,11 @@ used to test plumbing only, not to adjust the prompt.
 
 ## 9. What's open (decided by Gates 3.2–3.4)
 
-- Do OOS abstention and false abstention meet the targets on **both** sets, especially held-out tickets?
-- Are failures retrieval-side (→ Phase 4 query rewrite) or answer-side (→ `ga_p2`)? See §3.3.
-- Plain-mode failure rate over 60 calls (§6.3).
+- ~~Do OOS abstention and false abstention meet the targets on **both** sets?~~ Yes on deterministic
+  metrics (Gate 3.2, D11): golden 8/8 + 0/30, held-out 7/8 + 2/14.
+- Are failures retrieval-side (→ Phase 4 query rewrite) or answer-side (→ `ga_p2`)? Gate 3.2: 3 answer-side,
+  1 retrieval-side (held-out only). Final call after correctness is judged (3.3/3.4). See §3.3.
+- ~~Plain-mode failure rate over 60 calls (§6.3).~~ 0 of 57 live calls failed (Gate 3.2).
 - Judge–human agreement, and whether correctness reaches 90% on golden.
 - Actual credits per call (from the AI usage views, not assumed).
 

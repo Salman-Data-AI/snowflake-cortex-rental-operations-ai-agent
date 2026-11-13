@@ -11,12 +11,16 @@
 -- call_status 'failed' = NULL / unparseable LLM reply: excluded from metrics, never an abstention.
 -- cached = TRUE: the answer came from GOLD.policy_answer_cache (0 tokens).
 -- Judged metrics (correctness, groundedness) go to policy_answer_judgments in Gate 3.3.
+-- retrieval_setup = the retrieval setup_version (policy_retrieval_results) that GOLD.policy_search
+--   served during the run, e.g. v1b_chunking. Answer setups (a*) sit on top of one retrieval setup (v*).
+--   Added in Gate 3.2 via ADD COLUMN IF NOT EXISTS; the default backfills the Gate 3.1 smoke rows.
 -- Rerunnable (IF NOT EXISTS): never drops run history.
 -- =============================================================
 
 CREATE TABLE IF NOT EXISTS RENTAL_OPS.EVALUATION.policy_answer_results (
     run_id               STRING        NOT NULL,
     setup_version        STRING        NOT NULL,   -- a1_grounded_answer, a1_haiku, ... (smoke: a1_smoke_*)
+    retrieval_setup      STRING        DEFAULT 'v1b_chunking', -- retrieval setup_version underneath
     question_set         STRING        NOT NULL,   -- golden | holdout
     dataset_version      STRING,
     run_ts               TIMESTAMP_LTZ NOT NULL,
@@ -46,6 +50,10 @@ CREATE TABLE IF NOT EXISTS RENTAL_OPS.EVALUATION.policy_answer_results (
     raw_response         VARIANT,
     CONSTRAINT pk_policy_answer_results PRIMARY KEY (run_id, question_id)
 );
+
+-- Gate 3.2: add the column to the existing table (existing rows get the default)
+ALTER TABLE RENTAL_OPS.EVALUATION.policy_answer_results
+    ADD COLUMN IF NOT EXISTS retrieval_setup STRING DEFAULT 'v1b_chunking';
 
 -- Validate (metadata only): expect 1 row
 SHOW TABLES LIKE 'POLICY_ANSWER_RESULTS' IN SCHEMA RENTAL_OPS.EVALUATION;

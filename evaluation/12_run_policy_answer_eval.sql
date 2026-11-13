@@ -1,6 +1,6 @@
 -- =============================================================
 -- Evaluation | Step 12: Eval procedure run_policy_answer_eval(setup_version, question_set, top_k,
---                       model, output_mode, question_ids)
+--                       model, output_mode, question_ids, retrieval_setup)
 -- Prereq: evaluation/09_ (view policy_eval_questions), 11_ (policy_answer_results),
 --         gold-layer-code/unstructured-data/03_answer_policy_question.sql
 -- Per question: CALL GOLD.answer_policy_question (retrieval + one LLM call, or a cache hit),
@@ -8,10 +8,15 @@
 -- Cost: the answer cache makes reruns free; only questions whose LLM input changed (question,
 --   model, output_mode, prompt or retrieved excerpts) and earlier failed calls cost tokens.
 -- question_ids: optional ARRAY to run a subset (Gate 3.1 smoke test); NULL = the whole set.
+-- retrieval_setup: label of the retrieval setup GOLD.policy_search currently serves (it does not
+--   change retrieval); stored per row so every answer run names the v* setup underneath it.
 -- Use a distinct setup_version per question set (reports pick the latest run per setup_version).
 -- EXECUTE AS CALLER (same as run_policy_retrieval_eval). Returns the run_id.
 -- Rerunnable (CREATE OR REPLACE).
 -- =============================================================
+
+-- Gate 3.2: the signature gained retrieval_setup; drop the old 6-argument overload so only one exists.
+DROP PROCEDURE IF EXISTS RENTAL_OPS.EVALUATION.run_policy_answer_eval(STRING, STRING, INT, STRING, STRING, ARRAY);
 
 CREATE OR REPLACE PROCEDURE RENTAL_OPS.EVALUATION.run_policy_answer_eval(
     setup_version STRING,
@@ -19,7 +24,8 @@ CREATE OR REPLACE PROCEDURE RENTAL_OPS.EVALUATION.run_policy_answer_eval(
     top_k         INT     DEFAULT 5,
     model         STRING  DEFAULT 'claude-sonnet-4-5',
     output_mode   STRING  DEFAULT 'plain',
-    question_ids  ARRAY   DEFAULT NULL
+    question_ids  ARRAY   DEFAULT NULL,
+    retrieval_setup STRING DEFAULT 'v1b_chunking'
 )
 RETURNS STRING
 LANGUAGE SQL
@@ -53,7 +59,7 @@ BEGIN
             INTO :res;
 
         INSERT INTO RENTAL_OPS.EVALUATION.policy_answer_results (
-            run_id, setup_version, question_set, dataset_version, run_ts, question_id, is_answerable,
+            run_id, setup_version, retrieval_setup, question_set, dataset_version, run_ts, question_id, is_answerable,
             top_k, model, output_mode, prompt_version, retrieved_chunk_ids, retrieved_scores,
             decision, answer, cited_chunk_ids, uncovered_parts,
             decision_correct, citation_valid, citation_hit, expected_in_top_k,
@@ -69,7 +75,7 @@ BEGIN
             FROM r, LATERAL FLATTEN(INPUT => r.v:retrieved) f
         )
         SELECT
-            :run_id, :setup_version, :question_set, g.dataset_version, :run_ts, :qid, g.is_answerable,
+            :run_id, :setup_version, :retrieval_setup, :question_set, g.dataset_version, :run_ts, :qid, g.is_answerable,
             :top_k, :model, :output_mode, r.v:prompt_version::STRING,
             COALESCE(ret.ids, ARRAY_CONSTRUCT()), COALESCE(ret.scores, ARRAY_CONSTRUCT()),
             r.v:decision::STRING, r.v:answer::STRING, r.v:cited_chunk_ids::ARRAY,

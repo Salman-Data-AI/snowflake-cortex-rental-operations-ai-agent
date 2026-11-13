@@ -7,7 +7,7 @@ one ties them together and says where each piece is implemented.
 
 | | |
 |---|---|
-| **Last updated** | 2026-11-13 (after Phase 3 Gate 3.1) |
+| **Last updated** | 2026-11-13 (after Phase 3 Gate 3.2) |
 | **Repo purpose** | Learning repo: build a rental-operations AI assistant on Snowflake, and record *why* each design choice was made |
 | **Maintenance** | Kept current per `CLAUDE.md` ("Knowledge docs"): update with every change to objects, results or decisions |
 
@@ -115,6 +115,7 @@ begins with a comment block giving its purpose, prerequisites and design notes.
 | `policy_answer_results` | one row per run × question: decision, answer, citations, per-row metrics, tokens | `evaluation/11_policy_answer_results.sql` |
 | `run_policy_answer_eval` | answer eval procedure (calls `answer_policy_question` per question) | `evaluation/12_run_policy_answer_eval.sql` |
 | Gate 3.1 smoke test + schema/plain A/B | 3 questions | `evaluation/13_run_a1_smoke.sql` |
+| Gate 3.2 generation run (golden + held-out) | `a1_grounded_answer`, `a1_grounded_answer_holdout` | `evaluation/14_run_a1_grounded_answer.sql` |
 
 ### 4.3 Key table shapes
 
@@ -123,7 +124,7 @@ begins with a comment block giving its purpose, prerequisites and design notes.
 | `policy_golden_questions` / `policy_holdout_questions` | `question_id` (pq_NN / ho_NN), `question`, `question_style` (direct, paraphrase, casual, ticket, review, out_of_scope), `is_answerable`, `expected_document_id`, `expected_section_header`, `expected_chunk_ids`, `expected_evidence` (verbatim spans), `expected_answer`, `dataset_version`; held-out adds `source_type`, `source_id`, `source_category`, `language` |
 | `GOLD.policy_document_chunks` | `chunk_id` (`<document>_<NN>`), `document_id`, `document_title`, `section_header`, `chunk_text` (raw, for citation), `search_text` (indexed: context + chunk + generated questions), `document_type`, `chunking_version`, `is_quality_flagged` |
 | `policy_retrieval_results` | `run_id`, `setup_version`, `question_id`, `retrieved_chunk_ids`, `scores`, `first_hit_rank`, `hit_at_1/3/5`, `reciprocal_rank`, `top_reranker_score`, `raw_response` (full list: doc 01 §5.3) |
-| `policy_answer_results` | `run_id`, `setup_version`, `question_set`, `question_id`, `model`, `output_mode`, `prompt_version`, `retrieved_chunk_ids`, `decision`, `answer`, `cited_chunk_ids`, `uncovered_parts`, `decision_correct`, `citation_valid`, `citation_hit`, `expected_in_top_k`, tokens, latency, `cached`, `call_status` |
+| `policy_answer_results` | `run_id`, `setup_version`, `retrieval_setup`, `question_set`, `question_id`, `model`, `output_mode`, `prompt_version`, `retrieved_chunk_ids`, `decision`, `answer`, `cited_chunk_ids`, `uncovered_parts`, `decision_correct`, `citation_valid`, `citation_hit`, `expected_in_top_k`, tokens, latency, `cached`, `call_status` |
 | `GOLD.policy_answer_cache` | `input_sha` (PK: SHA2 of model, output mode and full prompt), the parsed answer fields, tokens, `raw_response` |
 
 ---
@@ -137,7 +138,7 @@ begins with a comment block giving its purpose, prerequisites and design notes.
 | 2 | doc2query | `v1_doc2query` | ranking unchanged; median answerable rank-1 score −3.94 → −1.25 |
 | 2b | Structure-aware chunking (35 → 42 chunks) | `v1b_chunking` | hit@5 1.000, MRR 0.978; golden score separation +0.71 |
 | 2a | Held-out set (tickets/reviews) + calibration check | `v1b_chunking_ho` | hit@3 0.93, but score AUC 0.62: **no score threshold works** |
-| 3 | Grounded answers with LLM abstention + answer-level eval | `a1_grounded_answer` | Gates 3.0 (models) and 3.1 (build + smoke test) done; 3.2 full run next |
+| 3 | Grounded answers with LLM abstention + answer-level eval | `a1_grounded_answer` (+ `_holdout`) | Gate 3.2 done: golden OOS abstention 8/8, false abstention 0/30; held-out 7/8 and 2/14; citations 100% valid; 0 JSON failures. Judge (3.3) next |
 | 4 | Query rewrite (conditional) | `v2_query_rewrite` | only if Phase 3 failures trace to retrieval |
 | later | Semantic View + Cortex Analyst; Cortex Agent | — | separate planning |
 
@@ -173,6 +174,9 @@ Plans: `docs/plans/02_policy_rag_roadmap_revision.md` (why the roadmap changed, 
 - **Labels survive re-chunking:** each answerable question carries verbatim evidence spans, and chunk ids
   are re-derived from them by a validation query.
 - **Every run is tagged** with a `setup_version` and stored per question; metrics are frozen at insert time.
+  `v*` = retrieval setups (`policy_retrieval_results`), `a*` = answer setups (`policy_answer_results`),
+  each answer row names its retrieval setup in `retrieval_setup`. Held-out runs: suffix `_holdout`
+  (older `v1b_chunking_ho` kept). Details: doc 03 §7.4.
 - **No tuning on the exam:** prompts are fixed before the first run; the first run is the headline; at
   most one revision, only for a failure class; labels are never changed after seeing results.
 
