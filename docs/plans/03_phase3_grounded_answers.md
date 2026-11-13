@@ -134,7 +134,7 @@ With only 60 labelled queries there is no separate tuning set. Rules:
 | **3.1** | DDL: `GOLD.answer_policy_question`, `EVALUATION.policy_answer_results` (with cache), eval procedure; CLAUDE.md serving-layer note; smoke test on 3 questions (1 answerable, 1 ticket, 1 OOS), run twice (schema vs plain JSON) | ≈ 0.03–0.04 cr |
 | **3.2** | **Done** (2026-11-13): generation run `a1_grounded_answer` (+ `_holdout`) on golden + held-out (60 questions, 57 live calls); deterministic metrics report; see Gate 3.2 results | ≈ 0.10–0.2 cr (60 × ~1–2k in / ~150 out tokens, depending on the A/B) + warehouse |
 | **3.3** | **Done** (2026-11-13): judge run (43 calls, both metrics per call) + human review of every verdict; judged metrics + agreement; see Gate 3.3 results | ≈ 0.10–0.15 cr; your review time ~20 min |
-| **3.4** | Report + decide next: Phase 4 trigger check (below), CLAUDE.md rule note, design-knowledge doc for answer eval | ~0 |
+| **3.4** | **Done** (2026-11-13): Phase 3 report, Phase 4 trigger check, cost reconciliation; CLAUDE.md serving-layer note (added in 3.1); design docs `03_…` + `04_…`. Next-step choice is the user's (see Gate 3.4) | ~0.02 cr (reconciliation) |
 
 Total ≈ 0.15–0.3 cr (~$0.45–0.9) for one full pass with the cost controls; with the cache, a
 `ga_p2` revision only pays for the calls whose input changed. Credit rates per model are confirmed
@@ -247,6 +247,91 @@ repositioning fee), ho_06 (did not say a flight delay is no exception), ho_09 (m
 met on golden (citations 100%, OOS 8/8, false abstention 0/30, strict correctness 96.7%). Held-out
 strict correctness 57% < 70%, but 5 of 6 failures are answer-step, so the §4 rule points to `ga_p2`,
 not Phase 4. Final call in Gate 3.4.
+
+### Gate 3.4: Phase 3 report (2026-11-13)
+
+**Setup:** `a1_grounded_answer` (+ `_holdout`) = retrieval `v1b_chunking`, top 5, `claude-sonnet-4-5`,
+plain JSON, prompt `ga_p1`; judge `openai-gpt-5.4` `judge_p1`, every verdict human-reviewed.
+
+| Metric | Golden (38: 30 + 8 OOS) | Held-out (22: 14 + 8 OOS) | Target golden / held-out |
+|---|---|---|---|
+| OOS abstention | 8/8 | 7/8 | ≥ 7/8 / ≥ 6/8 ✅ |
+| False abstention | 0/30 | 2/14 (14%) | ≤ 10% / ≤ 20% ✅ |
+| Citation validity | 38/38 | 22/22 | 100% ✅ |
+| Citation hit | 30/30 | 11/12 | reported |
+| Correctness strict (human) | **29/30 = 96.7%** | **8/14 = 57.1%** | ≥ 90% golden ✅ / held-out reported |
+| Correctness lenient / partial credit | 100% / 98.3% | 85.7% / 71.4% | reported |
+| Groundedness (answered rows) | 30/30 | 12/13 | reported |
+| Judge–human agreement | 27/30 (κ 0.37) | 13/13 (κ 1.0) | all 43: 40/43, κ 0.77 |
+| Generator tokens / call (avg, uncached) | 898 in / 89 out | 934 in / 100 out | |
+| Latency p50 end-to-end | 4.3 s | 4.6 s | |
+
+**Phase 3 "done" criteria (§4): met.** Citation validity 100%, golden OOS 8/8, golden false
+abstention 0%, golden strict correctness 96.7% ≥ 90%.
+
+**Failure list (held-out; golden has 1 partial, pq_21):**
+
+| Row | Outcome | Side | Class |
+|---|---|---|---|
+| ho_01 | abstained (answerable) | answer step | A: action request whose policy rule exists; model abstained on the action |
+| ho_07 | abstained (answerable) | answer step | A: same (model ≠ reserved category read as not covered) |
+| ho_21 | OOS answered, ungrounded claim | answer step | A: near-miss complaint answered from a related rule |
+| ho_02 | partial | answer step | B: omits an applicable condition / fee (one-way repositioning fee) |
+| ho_06 | partial | answer step | B: omits the exception that answers the ticket (flight delay is no exception) |
+| ho_09 | partial | answer step | B: omits a secondary fact (response time) |
+| pq_21 | partial (golden) | answer step | B: omits a condition (towing elsewhere billed at cost) |
+| ho_08 | partial | **retrieval** | expected `roadside_assistance_guide_01` not in top 5; missed "phone fastest overnight" |
+
+**Phase 4 trigger (§4): not triggered.** Held-out strict correctness 57% < 70%, but the rule also
+requires the failures to trace to retrieval: of the 6 failing held-out answerable rows, 5 are
+answer-step (expected chunk retrieved) and 1 is retrieval (ho_08); ho_21 (OOS) is answer-step too. The §4 rule points to a prompt revision (`ga_p2`).
+Candidate failure classes for `ga_p2` (from the classification above, not from individual rows):
+- **A, the decision on ticket-style requests:** answer the policy rule behind an action request;
+  abstain on a complaint when no rule addresses its specific issue.
+- **B, completeness:** state the conditions, exceptions and fees that apply to the situation.
+  The `ga_p1` limit "at most 3 sentences" is a plausible cause.
+Caveat: `ga_p2` would be designed from held-out failures and re-measured on the same held-out set,
+so its held-out gain is optimistic. Plan §2.4 accepts one revision on these terms (p1 and p2 both
+reported); a fresh held-out set would be the clean check.
+
+**Cost actuals (ACCOUNT_USAGE, `manual-validations/cost-reconciliation.sql`):**
+
+| Gate | AI credits | Warehouse credits (hour-attributed) | Total | Estimate |
+|---|---|---|---|---|
+| 3.0 model check | 0.003 | 0.089 | 0.092 | 0.03 |
+| 3.1 build + smoke | 0.021 | 0.043 | 0.064 | 0.03–0.04 |
+| 3.2 generation (57 calls) | 0.141 | ~0.123 (shared hour, 50/50) | ~0.264 | 0.10–0.2 |
+| 3.3 judge (43 calls) | 0.094 | ~0.123 (shared hour, 50/50) | ~0.217 | 0.10–0.15 |
+| **Phase 3** | **0.258** | **0.378** (+0.031 cloud services, mostly waived) | **≈ 0.64 cr (~$1.91)** | 0.26–0.42 |
+
+- Per call: generator `claude-sonnet-4-5` ≈ **0.0025 cr** (~$0.0074); judge `openai-gpt-5.4` ≈ **0.0022 cr**.
+- **The warehouse cost more than the AI tokens.** The eval procedures call the LLM one question at a
+  time, and the X-Small warehouse runs for the whole loop (~4 s per question) plus 60 s
+  minimum/idle per burst. Estimates counted bursts but not the loop time; future estimates add
+  ≈ latency × 1 cr/h (e.g. 60 questions × 4.5 s ≈ 0.075 cr).
+- Cheaper option for later: the judge has no per-row retrieval, so it could be one set-based
+  `AI_COMPLETE` over a table (Snowflake parallelises it) instead of a loop. The generator needs
+  `SEARCH_PREVIEW` per question, so it stays a loop.
+- `CORTEX_FUNCTIONS_USAGE_HISTORY` returned no rows for AI_COMPLETE; use
+  `CORTEX_AI_FUNCTIONS_USAGE_HISTORY` (per query, credits + token `METRICS`).
+- Nov 12 ledger rows (Phases 1–2a) are still unreconciled per row; daily totals: Nov 12 UTC WH 0.736
+  billed + AI 0.105.
+
+**Next-step options (user decision):**
+1. Decide D-open-1 (scoring method) first: it applies to every later answer setup.
+2. `ga_p2` for failure classes A + B, run on both sets (~60 calls ≈ 0.15 AI + ~0.08 WH ≈ 0.25 cr).
+3. `a1_haiku` (`claude-haiku-4-5`) on the better prompt: production-cost setup.
+4. Fresh held-out set (`ho_tickets_v2`) for an unbiased check of `ga_p2`.
+5. Move on to the roadmap's next stage (Semantic View / Cortex Analyst / Cortex Agent), leaving
+   prompt work for later; Phase 4 stays parked.
+
+**Decided (user, 2026-11-13): options 1 + 5.** D-open-1 is decided next session, together with the
+plan for the next stage (Semantic View / Cortex Analyst / Cortex Agent), a Claude Code hook and the
+AI Observability setup (deferred to the agent stage in §2.3). Options 2–4 are **not pursued**:
+(1) the held-out set was costly to build (verbatim tickets, labels re-derived from evidence spans);
+(2) designing `ga_p2` from held-out failures and re-measuring there starts a leakage-and-fix loop
+(each fix needs a new unseen set to be trusted). The held-out failures stay recorded as findings.
+`a1_haiku` is not needed until a production-cost decision is due.
 
 ## 4. Decision criteria (fixed now, before results)
 

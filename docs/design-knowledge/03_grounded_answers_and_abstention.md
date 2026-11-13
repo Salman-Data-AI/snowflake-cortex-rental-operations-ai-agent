@@ -11,9 +11,9 @@ the trade-off was made.
 | **Implemented in** | `src/gold-layer-code/unstructured-data/03_…`, `evaluation/11_…` to `14_…` |
 | **Plans** | `docs/plans/02_policy_rag_roadmap_revision.md` (why), `docs/plans/03_phase3_grounded_answers.md` (how, gates) |
 | **Companion docs** | `01_policy_retrieval_evaluation.md` (retrieval metrics), `02_chunking_guidelines.md` |
-| **Status** | Gate 3.3 done (2026-11-13): judge + human review; golden strict correctness 29/30, held-out 8/14. Report (3.4) pending. Judging methods: `04_answer_evaluation_methods.md` |
+| **Status** | **Phase 3 done** (Gate 3.4, 2026-11-13): all §4 criteria met on golden (strict correctness 29/30); held-out 8/14 strict, failures mostly answer-step → Phase 4 not triggered. Next step is the user's choice (plan 03, Gate 3.4). Judging methods: `04_answer_evaluation_methods.md` |
 
-**Last updated:** 2026-11-13 (after Gate 3.3)
+**Last updated:** 2026-11-13 (after Gate 3.4)
 
 ## Implementation map
 
@@ -46,7 +46,7 @@ explains why abstention moved from a **score threshold in retrieval** (the origi
 
 ---
 
-## 2. The journey: decision points from baseline to Gate 3.3
+## 2. The journey: decision points from baseline to Gate 3.4
 
 Each row is a point where evidence changed the plan. Numbers are from `EVALUATION.policy_retrieval_results`
 and `policy_answer_results`.
@@ -65,6 +65,7 @@ and `policy_answer_results`.
 | **D10** | Gate 3.2 setup naming | Answer runs continue the `v*` sequence (v1 → a1) | They are a second axis: an answer setup sits on top of one retrieval setup, and either can change alone. The answer table had no column saying which retrieval was underneath | `a*` = answer setups, `v*` = retrieval setups; new column **`retrieval_setup`**; held-out runs get suffix **`_holdout`** (§7.4) |
 | **D11** | Gate 3.2 headline run (`ga_p1`, 60 questions) | Ticket wording might break the LLM's decision the way it broke the score (D5) | Golden: OOS 8/8, false abstention 0/30, citations 38/38 valid. Held-out: OOS **7/8**, false abstention **2/14**, citations 22/22 valid; 0 JSON failures in 57 live calls. Failures: 3 answer-step (ho_01, ho_07 over-cautious; ho_21 near-miss answered), 1 retrieval (ho_08, answer still plausible) | The LLM decision transfers to tickets where the score did not (AUC 0.62 → 7/8 + 12/14 correct decisions). No change yet: the first run is the headline (§7.3). Failure class for a possible `ga_p2`: "request for an action whose policy rule exists / partial coverage", decided in 3.4 after judging |
 | **D12** | Gate 3.3 judge + human review | A judge's verdicts can be reported as results; a binary score is enough | Judge (gpt-5.4, `judge_p1`): golden 26/30 correct, 4 partial. Human overrode 3 (pq_01, pq_10, pq_33: partial → correct), all in the same direction: the judge treats every reference fact as key. Agreement 40/43, κ 0.77 (golden alone κ 0.37 at 90% agreement: kappa paradox). Final: golden strict 29/30, held-out 8/14 (lenient 12/14); grounded 42/43 | Human label is final. Correctness reported **strict + lenient + partial credit** (user's methodology choice: right-but-incomplete answers should be visible as such). Long-term scoring method (nuggets etc.) is open decision D-open-1 before the next setup. Details: `04_answer_evaluation_methods.md` |
+| **D13** | Gate 3.4 report + Phase 4 trigger | Low held-out correctness (8/14 strict < 70%) means retrieval needs query rewrite (Phase 4) | Of 6 failing held-out answerable rows, 5 had the expected chunk in the top 5 (answer step) and 1 did not (ho_08); ho_21 is answer-step too. Two failure classes: **A** decision on ticket-style requests (ho_01, ho_07 over-cautious; ho_21 over-eager), **B** completeness, omitting applicable conditions / exceptions / fees (ho_02, ho_06, ho_09, pq_21; plausibly caused by the "at most 3 sentences" rule). Cost actuals: Phase 3 ≈ 0.64 cr, warehouse 0.378 > AI 0.258 (sequential LLM loop holds the warehouse) | **Phase 3 done; Phase 4 not triggered** (rule needs retrieval-side failures). `ga_p2` targets classes A + B, with the caveat that it is designed from held-out failures and re-measured there (optimistic). **User decision:** D-open-1 next, then the Cortex Agent stage. `ga_p2`, `a1_haiku` and a fresh held-out set are **not pursued**: the held-out set was costly to build, and fixing on held-out failures then re-measuring there is a leakage-and-fix loop (every fix would need another unseen set). Failures stay recorded as findings |
 
 The thread through all of it: **every time a clean-looking result came from a small or curated set,
 a harder or independent set broke it** (D1 → D2, D4 → D5). That is why the held-out set now judges
@@ -341,8 +342,10 @@ Two evaluation layers, two tables, two version sequences:
 
 - ~~Do OOS abstention and false abstention meet the targets on **both** sets?~~ Yes on deterministic
   metrics (Gate 3.2, D11): golden 8/8 + 0/30, held-out 7/8 + 2/14.
-- Are failures retrieval-side (→ Phase 4 query rewrite) or answer-side (→ `ga_p2`)? Gate 3.2: 3 answer-side,
-  1 retrieval-side (held-out only). Final call after correctness is judged (3.3/3.4). See §3.3.
+- ~~Are failures retrieval-side (→ Phase 4 query rewrite) or answer-side (→ `ga_p2`)?~~ Gate 3.4 (D13):
+  answer-side. Held-out: 5 of 6 answerable failures + ho_21 are answer-step, 1 retrieval (ho_08). Phase 4 not triggered.
+- ~~Whether to run `ga_p2`, `a1_haiku`, a fresh held-out set, or move on~~: decided (D13). Move on to the
+  Cortex Agent stage after D-open-1; no held-out-driven prompt revision (leakage-and-fix loop).
 - ~~Plain-mode failure rate over 60 calls (§6.3).~~ 0 of 57 live calls failed (Gate 3.2).
 - ~~Judge–human agreement, and whether correctness reaches 90% on golden.~~ Gate 3.3 (D12): agreement 40/43, κ 0.77; golden strict 29/30 = 96.7%.
 - **Correctness scoring method (open, user decision before `a1_haiku` / `ga_p2`).** A binary
@@ -353,7 +356,7 @@ Two evaluation layers, two tables, two version sequences:
   from a missing nice-to-have, a distinction the single "partial" bucket mixes); claim-level scores
   (RAGAS, FActScore). The probabilistic model is not a reason for looser criteria: the rubric stays
   fixed so scores are comparable, and variance is measured by repeated runs (pass^k).
-- Actual credits per call (from the AI usage views, not assumed).
+- ~~Actual credits per call (from the AI usage views, not assumed).~~ Gate 3.4: Sonnet ≈ 0.0025 cr per answer, gpt-5.4 judge ≈ 0.0022 cr per verdict; eval warehouse time cost more than the AI (0.378 vs 0.258 cr for Phase 3).
 
 ---
 

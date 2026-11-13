@@ -7,7 +7,7 @@ one ties them together and says where each piece is implemented.
 
 | | |
 |---|---|
-| **Last updated** | 2026-11-13 (after Phase 3 Gate 3.3) |
+| **Last updated** | 2026-11-13 (after Phase 3 Gate 3.4, Phase 3 done) |
 | **Repo purpose** | Learning repo: build a rental-operations AI assistant on Snowflake, and record *why* each design choice was made |
 | **Maintenance** | Kept current per `CLAUDE.md` ("Knowledge docs"): update with every change to objects, results or decisions |
 
@@ -141,8 +141,8 @@ begins with a comment block giving its purpose, prerequisites and design notes.
 | 2 | doc2query | `v1_doc2query` | ranking unchanged; median answerable rank-1 score −3.94 → −1.25 |
 | 2b | Structure-aware chunking (35 → 42 chunks) | `v1b_chunking` | hit@5 1.000, MRR 0.978; golden score separation +0.71 |
 | 2a | Held-out set (tickets/reviews) + calibration check | `v1b_chunking_ho` | hit@3 0.93, but score AUC 0.62: **no score threshold works** |
-| 3 | Grounded answers with LLM abstention + answer-level eval | `a1_grounded_answer` (+ `_holdout`) | Gate 3.3 done: golden OOS abstention 8/8, false abstention 0/30, strict correctness 29/30 (human-reviewed); held-out 7/8, 2/14, strict 8/14 (lenient 12/14); citations 100% valid; judge–human κ 0.77. Report (3.4) next |
-| 4 | Query rewrite (conditional) | `v2_query_rewrite` | only if Phase 3 failures trace to retrieval |
+| 3 | Grounded answers with LLM abstention + answer-level eval | `a1_grounded_answer` (+ `_holdout`) | **Done** (Gate 3.4): golden OOS abstention 8/8, false abstention 0/30, strict correctness 29/30 (human-reviewed); held-out 7/8, 2/14, strict 8/14 (lenient 12/14); citations 100% valid; judge–human κ 0.77. Held-out failures mostly answer-step, recorded as findings (no `ga_p2`: leakage-and-fix loop). Phase cost ≈ 0.64 cr. Next: scoring decision D-open-1, then the Cortex Agent stage |
+| 4 | Query rewrite (conditional) | `v2_query_rewrite` | **not triggered** at Gate 3.4 (failures are answer-step); parked |
 | later | Semantic View + Cortex Analyst; Cortex Agent | — | separate planning |
 
 Plans: `docs/plans/02_policy_rag_roadmap_revision.md` (why the roadmap changed, Phase 2–2a results),
@@ -163,6 +163,7 @@ Plans: `docs/plans/02_policy_rag_roadmap_revision.md` (why the roadmap changed, 
 | `AI_COMPLETE` structured output fails **silently with NULL** | NULL is stored as `call_status = 'failed'`, never counted as an abstention, never cached |
 | OpenAI models return JSON only if the schema has `"additionalProperties": false` | All schemas include it |
 | Usable models (AWS_US_WEST_2, Gate 3.0) | Generator `claude-sonnet-4-5`; judge `openai-gpt-5.4` (fallback `mistral-large3`). `gemini-3.1-pro`, `openai-gpt-4.1` return NULL in JSON mode; `llama4-maverick` errors; `openai-gpt-5.5` is listed but not allowed |
+| Cost actuals for AI calls | `CORTEX_FUNCTIONS_USAGE_HISTORY` returns no AI_COMPLETE rows on this account; use `ACCOUNT_USAGE.CORTEX_AI_FUNCTIONS_USAGE_HISTORY` (per query: credits + token `METRICS`). Eval loops that call the LLM per question keep the warehouse running for the whole loop: in Phase 3 the warehouse (0.378 cr) cost more than the AI calls (0.258 cr). Queries: `manual-validations/cost-reconciliation.sql` |
 | snow CLI legacy templating reads `&name` as a variable, even in comments | Write "Q and A", not the ampersand form, or run with `--enable-templating NONE` |
 | `snow://workspace/…` paths only work in Snowsight | Local staging uses `scripts/stage_source_files.sh` |
 
