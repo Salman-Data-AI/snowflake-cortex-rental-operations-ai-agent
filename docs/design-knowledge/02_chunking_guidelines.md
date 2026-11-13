@@ -7,6 +7,20 @@ bad chunks **automatically**, so a larger corpus does not depend on manual inspe
 |---|---|
 | **Applies to** | `RENTAL_OPS.SILVER.policy_document_chunks` today; any future document corpus |
 | **Related** | `01_policy_retrieval_evaluation.md` (how chunk quality shows up in metrics), `docs/plans/02_policy_rag_roadmap_revision.md` (Phase 2b) |
+| **Status** | G1 (FAQ split), G3, G4 (3 flags) and G6 applied in Phase 2b (`c2_structure`, 2026-11-12); G2 recursive fallback, G5 and the other flags not needed at this corpus size |
+| **Last updated** | 2026-11-13 |
+
+## Implementation map
+
+| What | Object | File |
+|---|---|---|
+| Load the 6 markdown documents (1 row each) | `BRONZE.bronze_policy_documents` | `src/bronze-layer-code/unstructured-data/01_load_policy_documents.sql` |
+| Split (`SPLIT_TEXT_MARKDOWN_HEADER`, FAQ lines promoted to `##`), `title \| section` prefix, token count, quality flags, `chunking_version` | `SILVER.policy_document_chunks` | `src/silver-layer-code/unstructured-data/01_policy_document_chunks.sql` |
+| doc2query (G3), cached by chunk-text hash, regenerated only for changed chunks | `SILVER.policy_chunk_generated_questions` | `src/silver-layer-code/unstructured-data/02_policy_chunk_generated_questions.sql` |
+| Chunk + questions → `search_text`; flags carried as `is_quality_flagged` | `GOLD.policy_document_chunks` (DT) | `src/gold-layer-code/unstructured-data/01_policy_document_chunks.sql` |
+| Index (keyword + vector, user-provided embeddings) | `GOLD.policy_search` | `src/gold-layer-code/unstructured-data/02_policy_search_service.sql` |
+| Re-derive golden chunk ids from evidence spans (G6) | last validation query | `evaluation/02_policy_golden_questions.sql` (held-out: `09_…`) |
+| v1b eval run | — | `evaluation/08_run_v1b_chunking.sql` |
 
 ---
 
@@ -36,7 +50,10 @@ one procedure step group, with enough context to stand alone.
 | Filters | drop metadata-only Overview chunks |
 | Result | 35 chunks, median 82 tokens, max 491 (the FAQ) |
 
-It works because the documents are short and well-headed. It fails on structure without `##`
+*This was `c1_header`. Since Phase 2b (`c2_structure`): FAQ question lines become sections first →
+42 chunks, median 81, max 183 tokens, no flagged chunks (§6).*
+
+The baseline worked because the documents are short and well-headed. It fails on structure without `##`
 headers (the FAQ's bold questions), and it has no check that would flag an outlier.
 
 ## 3. Guidelines
@@ -135,7 +152,12 @@ Eval     golden set with evidence spans (G6) + outlier signals (G7)
 | Quality flags + review table | Scales without manual inspection | Thresholds need tuning; some false flags |
 | Parent–child | Precision + context | More complex index and returned columns |
 
-## 6. Applying this to the current corpus (Phase 2b)
+## 6. Applying this to the current corpus (Phase 2b) — done 2026-11-12
+
+Result: 42 chunks (8 FAQ chunks, one per Q and A), max 183 tokens, 0 flagged; golden hit@5
+0.967 → 1.000, pq_30 rank-1 score −8.09 → −4.37, no regressions. Full numbers:
+`01_policy_retrieval_evaluation.md` §7 and plan 02 "Phase 2b results". Steps as planned:
+
 
 1. Split the loyalty FAQ on bold question lines (one chunk per Q&A, ~8 chunks).
 2. Add `is_oversized`, `is_multi_topic`, `is_undersized` flags to the Silver chunk table and a

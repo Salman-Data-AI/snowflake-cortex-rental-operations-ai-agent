@@ -1,6 +1,6 @@
 -- =============================================================
--- Evaluation | Step 05: Eval procedure run_policy_retrieval_eval(setup_version, top_k, retriever)
--- Prereq: evaluation/02_..., evaluation/03_...
+-- Evaluation | Step 05: Eval procedure run_policy_retrieval_eval(setup_version, top_k, retriever, question_set)
+-- Prereq: evaluation/02_..., evaluation/03_..., evaluation/09_... (view policy_eval_questions)
 -- Two phases, so a new retrieval path never touches the metric logic:
 --   1. Retrieval: per golden question, run the chosen retriever and store its response
 --      ({"results": [{chunk_id, "@scores", ...}, ...]}) in a session temp table, with latency.
@@ -8,14 +8,22 @@
 --   2. Metrics: one INSERT ... SELECT scores every response against the golden set.
 -- To add a retriever (v2: policy_search_retrieve), add a branch in phase 1 that returns
 -- the same response shape; phase 2 stays unchanged.
+-- question_set: 'golden' (default, gq_*) or 'holdout' (Phase 2a, ho_*); read from the view
+--   policy_eval_questions. Use a distinct setup_version per set (e.g. v1b_chunking_ho), because
+--   reports pick the latest run per setup_version.
 -- EXECUTE AS CALLER so the temp table lives in the caller's session.
 -- Returns the run_id. Rerunnable (CREATE OR REPLACE).
 -- =============================================================
 
+-- Migration (rerunnable): the 3-argument version (before question_set) would stay as an overload
+-- and make 2- and 3-argument calls ambiguous.
+DROP PROCEDURE IF EXISTS RENTAL_OPS.EVALUATION.run_policy_retrieval_eval(STRING, NUMBER, STRING);
+
 CREATE OR REPLACE PROCEDURE RENTAL_OPS.EVALUATION.run_policy_retrieval_eval(
     setup_version STRING,
     top_k         INT,
-    retriever     STRING DEFAULT 'policy_search'
+    retriever     STRING DEFAULT 'policy_search',
+    question_set  STRING DEFAULT 'golden'
 )
 RETURNS STRING
 LANGUAGE SQL
@@ -29,14 +37,20 @@ DECLARE
     stmt     STRING;
     t0       TIMESTAMP_LTZ;
     unknown_retriever EXCEPTION (-20001, 'Unknown retriever. Supported: policy_search');
-    q_cur CURSOR FOR
-        SELECT question_id, question
-        FROM RENTAL_OPS.EVALUATION.policy_golden_questions
-        ORDER BY question_id;
+    unknown_set       EXCEPTION (-20002, 'Unknown question_set. Supported: golden, holdout');
+    qs  RESULTSET;
 BEGIN
     IF (retriever <> 'policy_search') THEN
         RAISE unknown_retriever;
     END IF;
+    IF (question_set NOT IN ('golden', 'holdout')) THEN
+        RAISE unknown_set;
+    END IF;
+    qs := (SELECT question_id, question
+           FROM RENTAL_OPS.EVALUATION.policy_eval_questions
+           WHERE question_set = :question_set
+           ORDER BY question_id);
+    LET q_cur CURSOR FOR qs;
 
     SELECT UUID_STRING(), CURRENT_TIMESTAMP() INTO :run_id, :run_ts;
 
@@ -85,7 +99,7 @@ BEGIN
                f.value:"@scores"          AS sc,
                ARRAY_CONTAINS(f.value:chunk_id, g.expected_chunk_ids) AS is_expected
         FROM RENTAL_OPS.EVALUATION.policy_eval_raw r
-        JOIN RENTAL_OPS.EVALUATION.policy_golden_questions g USING (question_id),
+        JOIN RENTAL_OPS.EVALUATION.policy_eval_questions g USING (question_id),
              LATERAL FLATTEN(INPUT => r.response:results, OUTER => TRUE) f
     ),
     agg AS (
@@ -113,7 +127,7 @@ BEGIN
         IFF(g.is_answerable, NULL, a.result_count = 0),
         r.latency_ms, r.llm_call_count, r.response
     FROM agg a
-    JOIN RENTAL_OPS.EVALUATION.policy_golden_questions g USING (question_id)
+    JOIN RENTAL_OPS.EVALUATION.policy_eval_questions g USING (question_id)
     JOIN RENTAL_OPS.EVALUATION.policy_eval_raw r USING (question_id);
 
     DROP TABLE IF EXISTS RENTAL_OPS.EVALUATION.policy_eval_raw;

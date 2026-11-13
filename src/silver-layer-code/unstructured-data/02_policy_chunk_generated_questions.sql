@@ -14,8 +14,10 @@
 --     NOT name examples from the golden set (e.g. "late return"), so v1 is not tuned to the exam.
 --   - search_text = chunk_text_with_context + generated questions; this is what Gold indexes.
 --     chunk_text stays untouched for display / citation.
---   - search_text_token_count uses the embedding model's tokenizer. Budget: <= 512 per chunk;
---     the 491-token loyalty FAQ chunk is expected to exceed it slightly (fixed by Phase 2b split).
+--   - search_text_token_count uses the embedding model's tokenizer. Budget: <= 512 per chunk.
+--     (c1_header: the 491-token loyalty FAQ chunk reached ~550; fixed by the c2_structure split.)
+--   - Phase 2b (c2_structure): rerun deletes the old loyalty_program_faq_00 row and generates
+--     questions for the 8 new FAQ chunks only (8 AI_COMPLETE calls); the other 34 rows are kept.
 --   - Rows whose response did not parse are not inserted, so a rerun retries them.
 -- =============================================================
 
@@ -117,8 +119,8 @@ FROM built;
 ALTER TABLE RENTAL_OPS.SILVER.policy_chunk_generated_questions SET CHANGE_TRACKING = TRUE;
 
 -- Validate 1: coverage + token budget
--- Expect: chunks = 35, with_questions = 35, stale_rows = 0, questions_per_chunk = 4,
---         max_search_tokens around 550 (only the loyalty FAQ chunk > 512)
+-- Expect (c2_structure): chunks = 42, with_questions = 42, stale_rows = 0, questions_per_chunk = 4,
+--         max_search_tokens < 512, chunks_over_512 = 0
 SELECT
     (SELECT COUNT(*) FROM RENTAL_OPS.SILVER.policy_document_chunks)          AS chunks,
     COUNT(c.chunk_id)                                                        AS with_questions,
@@ -132,11 +134,12 @@ LEFT JOIN RENTAL_OPS.SILVER.policy_document_chunks c
        ON c.chunk_id = q.chunk_id
       AND SHA2(c.chunk_text_with_context) = q.source_text_sha;
 
--- Validate 2: sample for review before the eval runs: the 2nd chunk of each document
--- plus the late-return chunk behind the v0 miss (pq_05)
+-- Validate 2: sample for review before the eval runs: the 2nd chunk of each document,
+-- the late-return chunk behind the v0 miss (pq_05), and every loyalty FAQ chunk (regenerated in 2b)
 SELECT c.chunk_id, c.section_header, q.generated_questions, q.search_text_token_count
 FROM RENTAL_OPS.SILVER.policy_chunk_generated_questions q
 JOIN RENTAL_OPS.SILVER.policy_document_chunks c USING (chunk_id)
 QUALIFY ROW_NUMBER() OVER (PARTITION BY c.file_name ORDER BY c.chunk_index) = 2
      OR c.chunk_id = 'rental_agreement_terms_03'
+     OR c.file_name = 'loyalty_program_faq.md'
 ORDER BY c.chunk_id;
