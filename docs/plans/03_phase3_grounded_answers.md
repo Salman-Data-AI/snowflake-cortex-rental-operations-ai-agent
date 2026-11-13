@@ -133,7 +133,7 @@ With only 60 labelled queries there is no separate tuning set. Rules:
 | **3.0** | Confirm models available in the account/region (generator, judge) and that `AI_COMPLETE` returns token usage | **Done**: see Gate 3.0 results |
 | **3.1** | DDL: `GOLD.answer_policy_question`, `EVALUATION.policy_answer_results` (with cache), eval procedure; CLAUDE.md serving-layer note; smoke test on 3 questions (1 answerable, 1 ticket, 1 OOS), run twice (schema vs plain JSON) | ≈ 0.03–0.04 cr |
 | **3.2** | **Done** (2026-11-13): generation run `a1_grounded_answer` (+ `_holdout`) on golden + held-out (60 questions, 57 live calls); deterministic metrics report; see Gate 3.2 results | ≈ 0.10–0.2 cr (60 × ~1–2k in / ~150 out tokens, depending on the A/B) + warehouse |
-| **3.3** | Judge run (≈ 45 calls, both metrics per call) + human review of every verdict; judged metrics + agreement | ≈ 0.10–0.15 cr; your review time ~20 min |
+| **3.3** | **Done** (2026-11-13): judge run (43 calls, both metrics per call) + human review of every verdict; judged metrics + agreement; see Gate 3.3 results | ≈ 0.10–0.15 cr; your review time ~20 min |
 | **3.4** | Report + decide next: Phase 4 trigger check (below), CLAUDE.md rule note, design-knowledge doc for answer eval | ~0 |
 
 Total ≈ 0.15–0.3 cr (~$0.45–0.9) for one full pass with the cost controls; with the cache, a
@@ -205,6 +205,49 @@ Observations:
   Harmless for metrics; noted for the judge prompt.
 - AI cost (estimate until the usage views catch up): 51.9k prompt + 5.3k completion tokens over 57 calls.
 
+### Gate 3.3 results (2026-11-13): judge `judge_p1` + human review
+
+Scripts `evaluation/15_` (tables), `16_` (procedure), `17_run_j1_judge.sql` (run + provisional
+report), `18_policy_answer_human_review.sql` (labels, agreement, final metrics). Judge
+`openai-gpt-5.4`, temperature 0 (accepted), JSON schema, max_tokens 2000. Judge run ids
+`b2dd9372…` (golden), `92421e6f…` (held-out). 43 answered rows judged, **0 failed**, 0 cached.
+Judge tokens: 46.2k prompt / 2.7k completion (avg ~1.07k / 62 per call); p50 latency 1.7 s.
+
+Provisional (judge only): golden 26 correct / 4 partial / 0 wrong (26/30 = 87%, below the 90% target);
+held-out 8 / 4 / 0 among answerable + ho_21 wrong; grounded 30/30 and 12/13.
+
+Human review (project owner, all 43 rows; same rubric as the judge): agrees except 3 correctness
+overrides, all partial -> correct:
+
+| Row | Judge | Human | Reason |
+|---|---|---|---|
+| pq_01 | partial | correct | Extra fact (Sports/Convertible $50 deposit) is true policy; rubric allows non-contradicting extras |
+| pq_10 | partial | correct | Question asks only the daily CDW price; the $500 deductible is secondary |
+| pq_33 | partial | correct | The requested help (free orientation briefing) is given; left-side driving implied by the question |
+
+Agreement: correctness 40/43 (p_o 0.930, p_e 0.703, **κ 0.77**); golden 27/30 (κ 0.37, kappa paradox:
+p_e 0.84 because almost all labels are `correct`); held-out 13/13 (κ 1.0). Groundedness 43/43.
+All disagreements are one-directional: the judge treats every reference fact as key (systematic
+strictness, not noise). See `docs/design-knowledge/04_answer_evaluation_methods.md` §3.
+
+Final judged metrics (human labels; denominator = all answerable questions, abstention = 0):
+
+| | Golden | Held-out |
+|---|---|---|
+| Correct / partial / wrong / abstained | 29 / 1 / 0 / 0 | 8 / 4 / 0 / 2 |
+| **Strict** (pass rule §4) | **29/30 = 0.967** (95% Wilson 0.83–0.99) | **8/14 = 0.571** (0.33–0.79) |
+| Lenient (correct + partial) | 1.000 | 0.857 |
+| Partial credit (1 / 0.5 / 0) | 0.983 | 0.714 |
+| Grounded (answered rows) | 30/30 | 12/13 (ho_21: "note cleanliness on the inspection form" unsupported) |
+
+Held-out non-correct answerable rows: ho_01, ho_07 (abstained; answer step), ho_02 (missed one-way
+repositioning fee), ho_06 (did not say a flight delay is no exception), ho_09 (missed response time)
+— all answer step, expected chunk retrieved; ho_08 (missed "phone fastest overnight") — retrieval
+(`roadside_assistance_guide_01` not in top 5). Preliminary for Gate 3.4: Phase 3 "done" criteria are
+met on golden (citations 100%, OOS 8/8, false abstention 0/30, strict correctness 96.7%). Held-out
+strict correctness 57% < 70%, but 5 of 6 failures are answer-step, so the §4 rule points to `ga_p2`,
+not Phase 4. Final call in Gate 3.4.
+
 ## 4. Decision criteria (fixed now, before results)
 
 - **Phase 3 done** when: citation validity 100%; golden OOS abstention ≥ 7/8; golden false
@@ -231,3 +274,22 @@ classified as retrieval vs answer step; the Phase 4 trigger outcome. Plus Snowfl
 4. **CLAUDE.md:** add the serving-layer exception (query-time AI calls in GOLD procedures, never in
    dynamic tables) during this phase.
 5. **Cost controls** in §2.2a adopted (2026-11-13). Gate 3.1 starts in a fresh Claude Code session.
+6. **Correctness reporting (2026-11-13, Gate 3.3):** the judge keeps three levels (correct / partial /
+   wrong). Reports show **strict** (correct only, the §4 pass rule), **lenient** (correct + partial)
+   and **partial credit** (correct = 1, partial = 0.5, wrong = 0) side by side. Reason: a binary
+   score hides answers that are right but incomplete; the three views are the user's own
+   methodology choice for judging the RAG process fairly. Study material on all conventions:
+   `docs/design-knowledge/04_answer_evaluation_methods.md` §4.
+
+### Open decision (user, before the next answer setup `a1_haiku` / `ga_p2`)
+
+**D-open-1: correctness scoring method.** Options to study:
+- partial credit (1 / 0.5 / 0): simple, but the 0.5 weight is arbitrary;
+- strict + lenient pair (current reporting);
+- **nugget / key-point recall** (TREC QA nuggets, TREC RAG 2024): split each `expected_answer` into
+  atomic facts tagged *vital* or *okay*; correct = all vital nuggets covered, completeness = share
+  covered. Separates "missed a vital fact" (ho_06, ho_02) from "missed a nice-to-have" (ho_09,
+  pq_10), which the single "partial" bucket mixes;
+- claim-level scores (RAGAS answer correctness / faithfulness, FActScore): continuous 0-1.
+If nuggets are chosen, the vital/okay tags are added to the labels **before** the next setup runs.
+Variance is handled separately (repeated runs, pass^k), not by looser criteria.

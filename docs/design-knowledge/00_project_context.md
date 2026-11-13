@@ -7,7 +7,7 @@ one ties them together and says where each piece is implemented.
 
 | | |
 |---|---|
-| **Last updated** | 2026-11-13 (after Phase 3 Gate 3.2) |
+| **Last updated** | 2026-11-13 (after Phase 3 Gate 3.3) |
 | **Repo purpose** | Learning repo: build a rental-operations AI assistant on Snowflake, and record *why* each design choice was made |
 | **Maintenance** | Kept current per `CLAUDE.md` ("Knowledge docs"): update with every change to objects, results or decisions |
 
@@ -116,6 +116,9 @@ begins with a comment block giving its purpose, prerequisites and design notes.
 | `run_policy_answer_eval` | answer eval procedure (calls `answer_policy_question` per question) | `evaluation/12_run_policy_answer_eval.sql` |
 | Gate 3.1 smoke test + schema/plain A/B | 3 questions | `evaluation/13_run_a1_smoke.sql` |
 | Gate 3.2 generation run (golden + held-out) | `a1_grounded_answer`, `a1_grounded_answer_holdout` | `evaluation/14_run_a1_grounded_answer.sql` |
+| `policy_answer_judgments`, `policy_answer_reviews` | LLM-judge verdicts (correctness + groundedness, cached on input hash); human verdicts keyed on the answer (final labels) | `evaluation/15_policy_answer_judgments.sql` |
+| `run_policy_answer_judge` | judge procedure (`judge_p1`, `openai-gpt-5.4`, answered rows only) | `evaluation/16_run_policy_answer_judge.sql` |
+| Gate 3.3 judge run + human review | judge on both a1 runs; agreement, strict / lenient / partial credit | `evaluation/17_run_j1_judge.sql`, `18_policy_answer_human_review.sql` |
 
 ### 4.3 Key table shapes
 
@@ -138,7 +141,7 @@ begins with a comment block giving its purpose, prerequisites and design notes.
 | 2 | doc2query | `v1_doc2query` | ranking unchanged; median answerable rank-1 score −3.94 → −1.25 |
 | 2b | Structure-aware chunking (35 → 42 chunks) | `v1b_chunking` | hit@5 1.000, MRR 0.978; golden score separation +0.71 |
 | 2a | Held-out set (tickets/reviews) + calibration check | `v1b_chunking_ho` | hit@3 0.93, but score AUC 0.62: **no score threshold works** |
-| 3 | Grounded answers with LLM abstention + answer-level eval | `a1_grounded_answer` (+ `_holdout`) | Gate 3.2 done: golden OOS abstention 8/8, false abstention 0/30; held-out 7/8 and 2/14; citations 100% valid; 0 JSON failures. Judge (3.3) next |
+| 3 | Grounded answers with LLM abstention + answer-level eval | `a1_grounded_answer` (+ `_holdout`) | Gate 3.3 done: golden OOS abstention 8/8, false abstention 0/30, strict correctness 29/30 (human-reviewed); held-out 7/8, 2/14, strict 8/14 (lenient 12/14); citations 100% valid; judge–human κ 0.77. Report (3.4) next |
 | 4 | Query rewrite (conditional) | `v2_query_rewrite` | only if Phase 3 failures trace to retrieval |
 | later | Semantic View + Cortex Analyst; Cortex Agent | — | separate planning |
 
@@ -190,6 +193,7 @@ Plans: `docs/plans/02_policy_rag_roadmap_revision.md` (why the roadmap changed, 
 | `01_policy_retrieval_evaluation.md` | how retrieval is measured, metrics, results v0 → v1b → held-out |
 | `02_chunking_guidelines.md` | how documents are split and quality-checked, and why |
 | `03_grounded_answers_and_abstention.md` | the answer step: decision history from baseline to now, cache, output format, answer evaluation |
+| `04_answer_evaluation_methods.md` | how answers are judged: LLM judge, human validation (kappa), scoring partly-right answers (strict/lenient, partial credit, nuggets, claim-level), randomness, small-sample intervals |
 | `docs/plans/02_…`, `03_…` | gate-by-gate plans and raw results |
 | `CLAUDE.md` | working rules, conventions, cost tracking |
 

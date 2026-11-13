@@ -11,9 +11,9 @@ the trade-off was made.
 | **Implemented in** | `src/gold-layer-code/unstructured-data/03_…`, `evaluation/11_…` to `14_…` |
 | **Plans** | `docs/plans/02_policy_rag_roadmap_revision.md` (why), `docs/plans/03_phase3_grounded_answers.md` (how, gates) |
 | **Companion docs** | `01_policy_retrieval_evaluation.md` (retrieval metrics), `02_chunking_guidelines.md` |
-| **Status** | Gate 3.2 done (2026-11-13): headline run on golden + held-out, all deterministic targets met. Judge (3.3) and report (3.4) pending |
+| **Status** | Gate 3.3 done (2026-11-13): judge + human review; golden strict correctness 29/30, held-out 8/14. Report (3.4) pending. Judging methods: `04_answer_evaluation_methods.md` |
 
-**Last updated:** 2026-11-13 (after Gate 3.2)
+**Last updated:** 2026-11-13 (after Gate 3.3)
 
 ## Implementation map
 
@@ -26,6 +26,7 @@ the trade-off was made.
 | Gate 3.1 smoke test + schema/plain A/B + cache check | runs `a1_smoke_*` | `evaluation/13_run_a1_smoke.sql` |
 | Gate 3.2 generation run + deterministic report | runs `a1_grounded_answer`, `a1_grounded_answer_holdout` | `evaluation/14_run_a1_grounded_answer.sql` |
 | Which retrieval setup an answer run sits on (§7.4) | column `policy_answer_results.retrieval_setup`, procedure arg `retrieval_setup` | `evaluation/11_…`, `evaluation/12_…` |
+| Judge verdicts, human reviews, judge procedure, Gate 3.3 run + review (details in `04_…`) | `EVALUATION.policy_answer_judgments`, `policy_answer_reviews`, `run_policy_answer_judge` | `evaluation/15_…` to `18_…` |
 | Question sets used (golden + held-out union) | view `EVALUATION.policy_eval_questions` | `evaluation/09_policy_holdout_questions.sql` |
 | Retrieval being consumed | `GOLD.policy_search` | `src/gold-layer-code/unstructured-data/02_policy_search_service.sql` |
 | Serving-layer rule (AI calls in GOLD procedures only) | — | `CLAUDE.md` "SQL conventions" |
@@ -45,7 +46,7 @@ explains why abstention moved from a **score threshold in retrieval** (the origi
 
 ---
 
-## 2. The journey: decision points from baseline to Gate 3.1
+## 2. The journey: decision points from baseline to Gate 3.3
 
 Each row is a point where evidence changed the plan. Numbers are from `EVALUATION.policy_retrieval_results`
 and `policy_answer_results`.
@@ -63,6 +64,7 @@ and `policy_answer_results`.
 | **D9** | Gate 3.1 A/B: schema vs plain JSON | The schema is needed for reliable JSON | Plain parsed **3/3**, same decisions, **~885 vs ~1,600** prompt tokens (§6) | Use **plain** for Phase 3 runs, with stricter validation; measure the failure rate on 60 calls. A schema fallback was considered and **not built** (§6.4) |
 | **D10** | Gate 3.2 setup naming | Answer runs continue the `v*` sequence (v1 → a1) | They are a second axis: an answer setup sits on top of one retrieval setup, and either can change alone. The answer table had no column saying which retrieval was underneath | `a*` = answer setups, `v*` = retrieval setups; new column **`retrieval_setup`**; held-out runs get suffix **`_holdout`** (§7.4) |
 | **D11** | Gate 3.2 headline run (`ga_p1`, 60 questions) | Ticket wording might break the LLM's decision the way it broke the score (D5) | Golden: OOS 8/8, false abstention 0/30, citations 38/38 valid. Held-out: OOS **7/8**, false abstention **2/14**, citations 22/22 valid; 0 JSON failures in 57 live calls. Failures: 3 answer-step (ho_01, ho_07 over-cautious; ho_21 near-miss answered), 1 retrieval (ho_08, answer still plausible) | The LLM decision transfers to tickets where the score did not (AUC 0.62 → 7/8 + 12/14 correct decisions). No change yet: the first run is the headline (§7.3). Failure class for a possible `ga_p2`: "request for an action whose policy rule exists / partial coverage", decided in 3.4 after judging |
+| **D12** | Gate 3.3 judge + human review | A judge's verdicts can be reported as results; a binary score is enough | Judge (gpt-5.4, `judge_p1`): golden 26/30 correct, 4 partial. Human overrode 3 (pq_01, pq_10, pq_33: partial → correct), all in the same direction: the judge treats every reference fact as key. Agreement 40/43, κ 0.77 (golden alone κ 0.37 at 90% agreement: kappa paradox). Final: golden strict 29/30, held-out 8/14 (lenient 12/14); grounded 42/43 | Human label is final. Correctness reported **strict + lenient + partial credit** (user's methodology choice: right-but-incomplete answers should be visible as such). Long-term scoring method (nuggets etc.) is open decision D-open-1 before the next setup. Details: `04_answer_evaluation_methods.md` |
 
 The thread through all of it: **every time a clean-looking result came from a small or curated set,
 a harder or independent set broke it** (D1 → D2, D4 → D5). That is why the held-out set now judges
@@ -279,7 +281,7 @@ harness with a cheaper generator, adopted if abstention and correctness hold.
 | False abstention | deterministic | answerable rows with `not_covered` | ≤ 10% / ≤ 20% |
 | Citation validity | deterministic | cited ⊆ retrieved (else a made-up citation) | 100% |
 | Citation hit | deterministic | answered + answerable rows citing an expected chunk | reported |
-| Correctness | judged (3.3) | vs `expected_answer`: correct / partial / wrong | ≥ 90% golden |
+| Correctness | judged (3.3) | vs `expected_answer`: correct / partial / wrong; reported strict, lenient, partial credit | ≥ 90% golden (strict) |
 | Groundedness | judged (3.3) | every claim supported by the given excerpts | reported |
 
 - Deterministic metrics are computed **at insert time and stored per row**, like retrieval metrics,
@@ -342,7 +344,15 @@ Two evaluation layers, two tables, two version sequences:
 - Are failures retrieval-side (→ Phase 4 query rewrite) or answer-side (→ `ga_p2`)? Gate 3.2: 3 answer-side,
   1 retrieval-side (held-out only). Final call after correctness is judged (3.3/3.4). See §3.3.
 - ~~Plain-mode failure rate over 60 calls (§6.3).~~ 0 of 57 live calls failed (Gate 3.2).
-- Judge–human agreement, and whether correctness reaches 90% on golden.
+- ~~Judge–human agreement, and whether correctness reaches 90% on golden.~~ Gate 3.3 (D12): agreement 40/43, κ 0.77; golden strict 29/30 = 96.7%.
+- **Correctness scoring method (open, user decision before `a1_haiku` / `ga_p2`).** A binary
+  right/wrong score hides answers that are right but incomplete. Gate 3.3 reports strict (correct
+  only), lenient (correct + partial) and partial credit (1 / 0.5 / 0) side by side. Candidates for
+  the long-term metric: partial credit; strict + lenient pair; **nugget / key-point recall** (TREC QA,
+  TREC RAG 2024: reference split into *vital* / *okay* facts, which separates a missing key condition
+  from a missing nice-to-have, a distinction the single "partial" bucket mixes); claim-level scores
+  (RAGAS, FActScore). The probabilistic model is not a reason for looser criteria: the rubric stays
+  fixed so scores are comparable, and variance is measured by repeated runs (pass^k).
 - Actual credits per call (from the AI usage views, not assumed).
 
 ---
