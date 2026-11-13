@@ -11,7 +11,7 @@ Originally built through Snowflake CoCo; SQL in `src/` is the record of what is 
 - `scripts/` — CLI helpers (`stage_source_files.sh` uploads `data/` to `@RENTAL_OPS.BRONZE.LANDING`)
 - `manual-validations/` — ad-hoc checks and one-off ops (not part of the pipeline)
 - `docs/plans/` — numbered implementation plans (current roadmap: `02_policy_rag_roadmap_revision.md`; `01_…` is the historical assessment)
-- `docs/design-knowledge/` — methodology/design explainers (e.g. `01_policy_retrieval_evaluation.md`)
+- `docs/design-knowledge/` — methodology/design explainers; `00_project_context.md` is the primer (start here)
 - `cost-tracking/ledger.csv` — local cost ledger (gitignored), see "Cost tracking"
 - `docs/prompts/` — planned feature prompts; `docs/GOLD_LAYER_DOCUMENTATION.md` — Gold reference
 
@@ -28,6 +28,19 @@ Originally built through Snowflake CoCo; SQL in `src/` is the record of what is 
   use a one-off `ALTER DYNAMIC TABLE <fqn> REFRESH` (with approval).
 - Prefer metadata commands (SHOW/DESCRIBE need no warehouse) over SELECTs that resume the warehouse.
 - Don't push, and don't change branches, without being asked.
+
+## Knowledge docs (keep current, part of every task)
+This is a learning repo: `docs/design-knowledge/` must let a reader (or another LLM with no repo access)
+understand what was built, why, the alternatives, the trade-offs and the decision points.
+- Whenever a task changes objects, files, results or decisions, update the affected design-knowledge
+  doc(s) **in the same task**, before reporting it done. Not a separate follow-up.
+- `00_project_context.md`: keep the object map, phase status table, constraints/quirks and "Last updated" current.
+- Every design doc keeps an **Implementation map** (what → object → file); add new files/objects to it.
+- Decisions go into the topic doc's decision log with evidence (numbers), alternatives considered and why
+  the choice was made, including options discussed and rejected. Superseded beliefs are kept and marked
+  as history, not deleted.
+- A new topic gets a new numbered doc (`NN_<topic>.md`) linked from the primer's reading order.
+- Plans (`docs/plans/`) hold gate-by-gate work and raw results; design-knowledge holds the explanation.
 
 ## Cost tracking (every session)
 - **Before each Snowflake task:** give a one-line estimate, e.g. "Snowflake: ~2 warehouse bursts ≈ 0.03–0.05 cr (~$0.09–0.15); 0 AI tokens".
@@ -59,6 +72,9 @@ Originally built through Snowflake CoCo; SQL in `src/` is the record of what is 
   run only in Silver plain tables (CTAS)**, so they run once and not on every refresh.
 - After a Silver CTAS, re-run `ALTER TABLE ... SET CHANGE_TRACKING = TRUE` (CREATE OR REPLACE resets it; Gold DTs need it).
 - Gold: Dynamic Tables, `TARGET_LAG = '3 minutes'`, `REFRESH_MODE = INCREMENTAL`, no AI calls.
+- Serving-layer exception: query-time AI calls (one call per user query, e.g. `GOLD.answer_policy_question`)
+  may live in GOLD **stored procedures**, with an input-hash answer cache (`GOLD.policy_answer_cache`).
+  No dynamic table ever calls them.
 - Cortex Search: legacy `SNOWFLAKE.CORTEX.EMBED_TEXT_*` is blocked on this account, so use user-provided vectors via
   `AI_EMBED('snowflake-arctic-embed-l-v2.0', ...)` + `VECTOR INDEXES col (query_model = ...)`; chunks are kept <= 512 tokens.
 - Eval runs are tagged with a `setup_version` (`v0_baseline`, `v1_doc2query` = current reference, `v1b_chunking`, ...).
