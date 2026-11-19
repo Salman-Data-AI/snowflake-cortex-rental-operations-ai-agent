@@ -7,7 +7,7 @@ one ties them together and says where each piece is implemented.
 
 | | |
 |---|---|
-| **Last updated** | 2026-11-13 (after Phase 3 Gate 3.4, Phase 3 done) |
+| **Last updated** | 2026-11-19 (semantic view `avelto_semantic_view` created) |
 | **Repo purpose** | Learning repo: build a rental-operations AI assistant on Snowflake, and record *why* each design choice was made |
 | **Maintenance** | Kept current per `CLAUDE.md` ("Knowledge docs"): update with every change to objects, results or decisions |
 
@@ -21,8 +21,8 @@ assistant for rental operations that can:
 1. **Answer policy questions** (cancellation, insurance, roadside help, loyalty, …) from the company's
    policy documents, and say "not covered" when the documents don't answer. This is the **policy RAG**
    (retrieval-augmented generation) track and the current focus.
-2. **Answer data questions** ("revenue by branch last month") over a star schema. This is planned via
-   Semantic Views + Cortex Analyst.
+2. **Answer data questions** ("revenue by branch last month") over a star schema, via a
+   Semantic View (`GOLD.avelto_semantic_view`, created 2026-11-19) + Cortex Analyst (planned).
 3. **Combine both** in a Cortex Agent, later.
 
 Everything runs inside Snowflake: SQL pipelines, Cortex AI functions, Cortex Search. The project was
@@ -43,6 +43,7 @@ is the record of what is deployed.
           (AI_CLASSIFY, AI_REDACT, AI_SENTIMENT, AI_TRANSLATE, AI_COMPLETE for doc2query)
  GOLD     dynamic tables, no AI calls: star schema + enriched tickets/reviews + policy chunks
           + Cortex Search service (policy_search)
+          + semantic view avelto_semantic_view (metrics/dimensions over the star schema)
           + serving procedure answer_policy_question (query-time AI call, the one exception)
  EVALUATION  question sets, eval procedures, per-run results (retrieval and answers)
 ```
@@ -98,6 +99,7 @@ begins with a comment block giving its purpose, prerequisites and design notes.
 | Silver | `policy_document_chunks` (split, prefix, token count, quality flags, `chunking_version`) | `src/silver-layer-code/unstructured-data/01_policy_document_chunks.sql` |
 | Silver | `policy_chunk_generated_questions` (doc2query, prompt `d2q_p1`, hash-cached) | `src/silver-layer-code/unstructured-data/02_policy_chunk_generated_questions.sql` |
 | Gold | star schema: `fact_reservations`, `dim_*`, `bridge_branch_category_availability` | `src/gold-layer-code/structured-data/01_gold_star_schema.sql`; reference: `docs/GOLD_LAYER_DOCUMENTATION.md` |
+| Gold | `avelto_semantic_view` (semantic view: 4 metrics, 5 dimensions over fact_reservations + dims) | `src/gold-layer-code/structured-data/02_avelto_semantic_view.sql`; design: doc 05 |
 | Gold | `support_tickets_enriched`, `reviews_enriched` | `src/gold-layer-code/semi-structured-data/01_…`, `02_…` |
 | Gold | `policy_document_chunks` (DT: chunk + questions → `search_text`) | `src/gold-layer-code/unstructured-data/01_policy_document_chunks.sql` |
 | Gold | `policy_search` (Cortex Search service) | `src/gold-layer-code/unstructured-data/02_policy_search_service.sql` |
@@ -143,7 +145,8 @@ begins with a comment block giving its purpose, prerequisites and design notes.
 | 2a | Held-out set (tickets/reviews) + calibration check | `v1b_chunking_ho` | hit@3 0.93, but score AUC 0.62: **no score threshold works** |
 | 3 | Grounded answers with LLM abstention + answer-level eval | `a1_grounded_answer` (+ `_holdout`) | **Done** (Gate 3.4): golden OOS abstention 8/8, false abstention 0/30, strict correctness 29/30 (human-reviewed); held-out 7/8, 2/14, strict 8/14 (lenient 12/14); citations 100% valid; judge–human κ 0.77. Held-out failures mostly answer-step, recorded as findings (no `ga_p2`: leakage-and-fix loop). Phase cost ≈ 0.64 cr. Next: scoring decision D-open-1, then the Cortex Agent stage |
 | 4 | Query rewrite (conditional) | `v2_query_rewrite` | **not triggered** at Gate 3.4 (failures are answer-step); parked |
-| later | Semantic View + Cortex Analyst; Cortex Agent | — | separate planning |
+| SV | Semantic View over the reservations star schema | — | **Created** 2026-11-19: revenue USD, reservation count, avg rental days, one-way rentals by country, region, branch (pickup), car category, currency. Totals match the fact table (2,000 / 1,514,210.12 USD / 7.415 / 1,818). No time dimension yet |
+| later | Cortex Analyst; Cortex Agent | — | separate planning |
 
 Plans: `docs/plans/02_policy_rag_roadmap_revision.md` (why the roadmap changed, Phase 2–2a results),
 `docs/plans/03_phase3_grounded_answers.md` (Phase 3 gates). `01_…` is historical.
@@ -195,6 +198,7 @@ Plans: `docs/plans/02_policy_rag_roadmap_revision.md` (why the roadmap changed, 
 | `02_chunking_guidelines.md` | how documents are split and quality-checked, and why |
 | `03_grounded_answers_and_abstention.md` | the answer step: decision history from baseline to now, cache, output format, answer evaluation |
 | `04_answer_evaluation_methods.md` | how answers are judged: LLM judge, human validation (kappa), scoring partly-right answers (strict/lenient, partial credit, nuggets, claim-level), randomness, small-sample intervals |
+| `05_semantic_views.md` | the semantic view over the star schema: building blocks, role-playing branch, join paths, validation |
 | `docs/plans/02_…`, `03_…` | gate-by-gate plans and raw results |
 | `CLAUDE.md` | working rules, conventions, cost tracking |
 
