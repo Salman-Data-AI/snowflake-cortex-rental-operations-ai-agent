@@ -18,6 +18,7 @@
 --   * AI spend has no hard cap: the controls for it are the agent's own
 --     budget (60 s / 16k tokens per question), the answer cache, and not
 --     using CoCo (20.4 of ~33 credits used up to 2026-11-19).
+--   * No model restriction: ACCOUNTADMIN bypasses it (section 3).
 --   * Limits: warehouse 5 credits/month, account 10 credits/month.
 --     Change the numbers below to adjust.
 -- =============================================================
@@ -51,15 +52,20 @@ CALL SNOWFLAKE.LOCAL.ACCOUNT_ROOT_BUDGET!SET_SPENDING_LIMIT(10);
 
 
 -- -------------------------------------------------------------
--- 3) OPTIONAL: restrict which LLMs can be called (commented out)
+-- 3) Model restriction: deliberately NOT used (decided 2026-11-19)
 -- -------------------------------------------------------------
--- Check the current value first:
-SHOW PARAMETERS LIKE 'CORTEX_MODELS_ALLOWLIST' IN ACCOUNT;
--- Untested on this account: make sure the list does not block the models the
--- project uses (generator, judge, agent orchestration, the search service's
--- embedding model snowflake-arctic-embed-l-v2.0) before enabling.
--- ALTER ACCOUNT SET CORTEX_MODELS_ALLOWLIST = 'claude-sonnet-4-5,openai-gpt-5.4,mistral-large3';
--- Undo: ALTER ACCOUNT UNSET CORTEX_MODELS_ALLOWLIST;
+-- Tried: ALTER ACCOUNT SET CORTEX_MODELS_ALLOWLIST = '<model list>'.
+-- Rejected by Snowflake: the parameter is deprecated and only accepts NONE;
+-- access is now controlled per model with
+--   GRANT APPLICATION ROLE SNOWFLAKE."CORTEX-MODEL-ROLE-<MODEL>" TO ROLE <role>;
+-- Not adopted because "The ACCOUNTADMIN role always has access to all models
+-- on the account, regardless of the CORTEX_MODELS_ALLOWLIST parameter or model
+-- RBAC grants" (Snowflake docs, model access control). This project runs as
+-- ACCOUNTADMIN, so it would cap nothing. Revisit if a non-admin role (e.g. an
+-- agent-user role) is introduced: set the allowlist to NONE, revoke
+-- CORTEX-MODEL-ROLE-ALL from PUBLIC with
+--   CALL SNOWFLAKE.LOCAL.REVOKE_FROM_PUBLIC_APPLICATION_ROLE('APP_ROLE', 'CORTEX-MODEL-ROLE-ALL');
+-- and grant only the model roles that role needs.
 
 
 -- -------------------------------------------------------------
