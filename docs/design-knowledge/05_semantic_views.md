@@ -10,7 +10,7 @@ and the Cortex Agent build on it later.
 | **Applies to** | `RENTAL_OPS.GOLD.avelto_semantic_view` |
 | **Implemented in** | `src/gold-layer-code/structured-data/02_avelto_semantic_view.sql` |
 | **Built over** | `src/gold-layer-code/structured-data/01_gold_star_schema.sql`; column reference `docs/GOLD_LAYER_DOCUMENTATION.md` |
-| **Companion docs** | `00_project_context.md` (map); Cortex Analyst / Agent docs to follow |
+| **Companion docs** | `00_project_context.md` (map); `06_cortex_agent.md` (the Cortex Agent uses this view as its `analyst_reservations` tool) |
 | **Status** | Created and validated 2026-11-19 (4 metrics, 5 dimensions; all totals match the fact table) |
 
 **Last updated:** 2026-11-19 (semantic view created)

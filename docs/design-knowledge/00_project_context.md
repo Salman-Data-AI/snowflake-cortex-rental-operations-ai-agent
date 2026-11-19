@@ -7,7 +7,7 @@ one ties them together and says where each piece is implemented.
 
 | | |
 |---|---|
-| **Last updated** | 2026-11-19 (semantic view `avelto_semantic_view` created) |
+| **Last updated** | 2026-11-19 (Cortex Agent `avelto_agent` created) |
 | **Repo purpose** | Learning repo: build a rental-operations AI assistant on Snowflake, and record *why* each design choice was made |
 | **Maintenance** | Kept current per `CLAUDE.md` ("Knowledge docs"): update with every change to objects, results or decisions |
 
@@ -23,7 +23,7 @@ assistant for rental operations that can:
    (retrieval-augmented generation) track and the current focus.
 2. **Answer data questions** ("revenue by branch last month") over a star schema, via a
    Semantic View (`GOLD.avelto_semantic_view`, created 2026-11-19) + Cortex Analyst (planned).
-3. **Combine both** in a Cortex Agent, later.
+3. **Combine both** in a Cortex Agent (`GOLD.avelto_agent`, created 2026-11-19; not yet run on questions).
 
 Everything runs inside Snowflake: SQL pipelines, Cortex AI functions, Cortex Search. The project was
 started in Snowflake's CoCo assistant and continued in Claude Code; the SQL in `src/` and `evaluation/`
@@ -104,6 +104,7 @@ begins with a comment block giving its purpose, prerequisites and design notes.
 | Gold | `policy_document_chunks` (DT: chunk + questions → `search_text`) | `src/gold-layer-code/unstructured-data/01_policy_document_chunks.sql` |
 | Gold | `policy_search` (Cortex Search service) | `src/gold-layer-code/unstructured-data/02_policy_search_service.sql` |
 | Gold | `answer_policy_question` (procedure), `policy_answer_cache` (table) | `src/gold-layer-code/unstructured-data/03_answer_policy_question.sql` |
+| Gold | `avelto_agent` (Cortex Agent: `analyst_reservations` → semantic view, `search_policies` → `policy_search`) | `src/gold-layer-code/agent/01_avelto_agent.sql`; design: doc 06 |
 
 ### 4.2 Evaluation (schema `RENTAL_OPS.EVALUATION`)
 
@@ -146,7 +147,8 @@ begins with a comment block giving its purpose, prerequisites and design notes.
 | 3 | Grounded answers with LLM abstention + answer-level eval | `a1_grounded_answer` (+ `_holdout`) | **Done** (Gate 3.4): golden OOS abstention 8/8, false abstention 0/30, strict correctness 29/30 (human-reviewed); held-out 7/8, 2/14, strict 8/14 (lenient 12/14); citations 100% valid; judge–human κ 0.77. Held-out failures mostly answer-step, recorded as findings (no `ga_p2`: leakage-and-fix loop). Phase cost ≈ 0.64 cr. Next: scoring decision D-open-1, then the Cortex Agent stage |
 | 4 | Query rewrite (conditional) | `v2_query_rewrite` | **not triggered** at Gate 3.4 (failures are answer-step); parked |
 | SV | Semantic View over the reservations star schema | — | **Created** 2026-11-19: revenue USD, reservation count, avg rental days, one-way rentals by country, region, branch (pickup), car category, currency. Totals match the fact table (2,000 / 1,514,210.12 USD / 7.415 / 1,818). No time dimension yet |
-| later | Cortex Analyst; Cortex Agent | — | separate planning |
+| AG | Cortex Agent over semantic view + policy search | — | **Created** 2026-11-19: `claude-sonnet-4-5` orchestration, routing numbers → Analyst, documents → search, both → combine. Search covers policies only (reviews/tickets not indexed; user chose to deploy policy-only). Not yet run on questions |
+| later | Agent smoke test + evaluation; feedback search service; time dimension | — | separate planning |
 
 Plans: `docs/plans/02_policy_rag_roadmap_revision.md` (why the roadmap changed, Phase 2–2a results),
 `docs/plans/03_phase3_grounded_answers.md` (Phase 3 gates). `01_…` is historical.
@@ -168,6 +170,7 @@ Plans: `docs/plans/02_policy_rag_roadmap_revision.md` (why the roadmap changed, 
 | Usable models (AWS_US_WEST_2, Gate 3.0) | Generator `claude-sonnet-4-5`; judge `openai-gpt-5.4` (fallback `mistral-large3`). `gemini-3.1-pro`, `openai-gpt-4.1` return NULL in JSON mode; `llama4-maverick` errors; `openai-gpt-5.5` is listed but not allowed |
 | Cost actuals for AI calls | `CORTEX_FUNCTIONS_USAGE_HISTORY` returns no AI_COMPLETE rows on this account; use `ACCOUNT_USAGE.CORTEX_AI_FUNCTIONS_USAGE_HISTORY` (per query: credits + token `METRICS`). Eval loops that call the LLM per question keep the warehouse running for the whole loop: in Phase 3 the warehouse (0.378 cr) cost more than the AI calls (0.258 cr). Queries: `manual-validations/cost-reconciliation.sql` |
 | snow CLI legacy templating reads `&name` as a variable, even in comments | Write "Q and A", not the ampersand form, or run with `--enable-templating NONE` |
+| **Trial account: included AI credits exhausted** (2026-11-19, error `399588` on the first agent run) | Cortex Agent runs (and probably all AI_* calls) are blocked until the account is upgraded. Metadata DDL (CREATE AGENT etc.) still works. Doc 06 §4.1. The AI allowance is separate from the $400 trial balance: on 2026-11-19 the balance still had **$326.84** while AI-type usage totalled ≈ 22.3 cr, of which **20.4 cr was the CoCo Snowsight assistant** (2026-11-10/11), AI functions 1.69 cr, AI services (Cortex Analyst) 0.20 cr. Cortex Analyst bills ≈ 0.067 cr per message (3 messages = 0.201 cr) |
 | `snow://workspace/…` paths only work in Snowsight | Local staging uses `scripts/stage_source_files.sh` |
 
 ---
@@ -199,6 +202,7 @@ Plans: `docs/plans/02_policy_rag_roadmap_revision.md` (why the roadmap changed, 
 | `03_grounded_answers_and_abstention.md` | the answer step: decision history from baseline to now, cache, output format, answer evaluation |
 | `04_answer_evaluation_methods.md` | how answers are judged: LLM judge, human validation (kappa), scoring partly-right answers (strict/lenient, partial credit, nuggets, claim-level), randomness, small-sample intervals |
 | `05_semantic_views.md` | the semantic view over the star schema: building blocks, role-playing branch, join paths, validation |
+| `06_cortex_agent.md` | the Cortex Agent: tools, routing instructions, why search is policy-only, open items |
 | `docs/plans/02_…`, `03_…` | gate-by-gate plans and raw results |
 | `CLAUDE.md` | working rules, conventions, cost tracking |
 
