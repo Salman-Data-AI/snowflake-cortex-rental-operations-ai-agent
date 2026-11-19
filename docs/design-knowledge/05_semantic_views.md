@@ -194,6 +194,21 @@ RENTAL_OPS.GOLD.AVELTO_SEMANTIC_VIEW`, request id `6a74faa2-dbdd-464a-a4d6-5924a
 - **Analyst only returns SQL; the caller runs it** on its own warehouse. The result matched the
   validation numbers exactly: US 426,260.00, Germany 293,730.14, Australia 181,000.00, Japan 159,760.00,
   France 156,490.14, UK 149,769.84, Canada 147,200.00 (sum 1,514,210.12).
+- Second question: *"Which branches have the most one-way rentals, where the pickup and return branch
+  are different?"* (request id `0a1aad6f-4a3a-4ceb-a974-01ddf87bb6ad`). Analyst used the `one_way_rentals`
+  metric with `branches.branch` instead of rewriting the condition itself, so the synonyms and comments on
+  the metric worked. Result: North Valerie 193 (top) down to Jordanville 162; equal to the validation query.
+  The question is ambiguous (pickup or return branch?) and Analyst silently chose pickup, because that
+  is the only branch role the view models (§3.1). It did not mention this in its restatement.
+- Third question: *"At Jordanville Branch, which car categories are offered but have the fewest
+  reservations?"* (request id `071bf979-3aeb-4ba3-9657-1a047bc6cb16`). Analyst returned
+  `reservation_count` by `car_category` with `WHERE branches.branch = 'Jordanville Branch'`, ascending:
+  Compact 16, Economy 40, Sports 40, SUV 41, Luxury 45. **It redefined "offered" as "has at least one
+  reservation"** (and said so in its restatement), because availability
+  (`GOLD.bridge_branch_category_availability`) is not in the view. A cross-check on the bridge table
+  showed the answer happens to be right: Jordanville offers exactly those 5 categories, and Convertible
+  (0 reservations) is not offered. At a branch where an offered category has 0 bookings, this answer
+  would silently leave out the most important row. → open item in §5.
 - The "entire time period" restatement reflects the missing time dimension (§5): Analyst cannot filter
   by date yet.
 - **Auth used:** the `rental-dev` connection is password-based, and the snow CLI has no Analyst
@@ -209,6 +224,7 @@ RENTAL_OPS.GOLD.AVELTO_SEMANTIC_VIEW`, request id `6a74faa2-dbdd-464a-a4d6-5924a
 | Item | Why it matters |
 |---|---|
 | **Time dimensions** (`start_date`, `booking_date`, month/year) | none are modelled yet, so "revenue last month" or "bookings by month" cannot be answered. Needed before Cortex Analyst |
+| Category availability (`bridge_branch_category_availability`) | "offered but few/no bookings" questions need it (§4.1, third question). It is a branch × category grain, not a reservation grain, so it would join as its own logical table keyed on (branch_id, category_id) with an "offered" dimension; design not yet decided |
 | Return-branch role (§3.1) | for "where do cars end up" questions |
 | Verified queries / `AI_SQL_GENERATION` instructions | improve Cortex Analyst accuracy on known question shapes |
 | Cortex Analyst evaluation | natural-language questions with expected SQL results, same discipline as the policy RAG eval (golden + held-out) |
