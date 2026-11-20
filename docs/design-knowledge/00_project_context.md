@@ -7,7 +7,7 @@ one ties them together and says where each piece is implemented.
 
 | | |
 |---|---|
-| **Last updated** | 2026-11-19 (Cortex Agent `avelto_agent` created) |
+| **Last updated** | 2026-11-20 (semantic view v2 + agent update for reviews and tickets deployed; CLI switched to key-pair auth) |
 | **Repo purpose** | Learning repo: build a rental-operations AI assistant on Snowflake, and record *why* each design choice was made |
 | **Maintenance** | Kept current per `CLAUDE.md` ("Knowledge docs"): update with every change to objects, results or decisions |
 
@@ -99,7 +99,7 @@ begins with a comment block giving its purpose, prerequisites and design notes.
 | Silver | `policy_document_chunks` (split, prefix, token count, quality flags, `chunking_version`) | `src/silver-layer-code/unstructured-data/01_policy_document_chunks.sql` |
 | Silver | `policy_chunk_generated_questions` (doc2query, prompt `d2q_p1`, hash-cached) | `src/silver-layer-code/unstructured-data/02_policy_chunk_generated_questions.sql` |
 | Gold | star schema: `fact_reservations`, `dim_*`, `bridge_branch_category_availability` | `src/gold-layer-code/structured-data/01_gold_star_schema.sql`; reference: `docs/GOLD_LAYER_DOCUMENTATION.md` |
-| Gold | `avelto_semantic_view` (semantic view: 4 metrics, 5 dimensions over fact_reservations + dims) | `src/gold-layer-code/structured-data/02_avelto_semantic_view.sql`; design: doc 05 |
+| Gold | `avelto_semantic_view` (semantic view: v2: fact_reservations + dims + reviews + tickets, 10 metrics, 14 dimensions) | `src/gold-layer-code/structured-data/02_avelto_semantic_view.sql`; design: doc 05 §3.7 |
 | Gold | `support_tickets_enriched`, `reviews_enriched` | `src/gold-layer-code/semi-structured-data/01_…`, `02_…` |
 | Gold | `policy_document_chunks` (DT: chunk + questions → `search_text`) | `src/gold-layer-code/unstructured-data/01_policy_document_chunks.sql` |
 | Gold | `policy_search` (Cortex Search service) | `src/gold-layer-code/unstructured-data/02_policy_search_service.sql` |
@@ -146,8 +146,8 @@ begins with a comment block giving its purpose, prerequisites and design notes.
 | 2a | Held-out set (tickets/reviews) + calibration check | `v1b_chunking_ho` | hit@3 0.93, but score AUC 0.62: **no score threshold works** |
 | 3 | Grounded answers with LLM abstention + answer-level eval | `a1_grounded_answer` (+ `_holdout`) | **Done** (Gate 3.4): golden OOS abstention 8/8, false abstention 0/30, strict correctness 29/30 (human-reviewed); held-out 7/8, 2/14, strict 8/14 (lenient 12/14); citations 100% valid; judge–human κ 0.77. Held-out failures mostly answer-step, recorded as findings (no `ga_p2`: leakage-and-fix loop). Phase cost ≈ 0.64 cr. Next: scoring decision D-open-1, then the Cortex Agent stage |
 | 4 | Query rewrite (conditional) | `v2_query_rewrite` | **not triggered** at Gate 3.4 (failures are answer-step); parked |
-| SV | Semantic View over the reservations star schema | — | **Created** 2026-11-19: revenue USD, reservation count, avg rental days, one-way rentals by country, region, branch (pickup), car category, currency. Totals match the fact table (2,000 / 1,514,210.12 USD / 7.415 / 1,818). No time dimension yet |
-| AG | Cortex Agent over semantic view + policy search | — | **Created** 2026-11-19: `claude-sonnet-4-5` orchestration, routing numbers → Analyst, documents → search, both → combine. Search covers policies only (reviews/tickets not indexed; user chose to deploy policy-only). Not yet run on questions |
+| SV | Semantic View over the reservations star schema | — | **Created** 2026-11-19: revenue USD, reservation count, avg rental days, one-way rentals by country, region, branch (pickup), car category, currency. Totals match the fact table (2,000 / 1,514,210.12 USD / 7.415 / 1,818). No time dimension yet. **v2 deployed 2026-11-20:** + reviews (count, avg rating, negative share by sentiment / stars / language / review date) and tickets (count, unresolved by category / channel / status / created date), joined via reservation; validated (1,400 / 3.689 / 301 negative; 300 / 223 unresolved; no fan-out) |
+| AG | Cortex Agent over semantic view + policy search | — | **Created** 2026-11-19: `claude-sonnet-4-5` orchestration, routing numbers → Analyst, documents → search, both → combine. Search covers policies only (reviews/tickets not indexed; user chose to deploy policy-only). Not yet run on questions. 2026-11-20: spec update deployed so review/ticket *numbers* route to Analyst (doc 06 §3.6); review text search still open |
 | later | Agent smoke test + evaluation; feedback search service; time dimension | — | separate planning |
 
 Plans: `docs/plans/02_policy_rag_roadmap_revision.md` (why the roadmap changed, Phase 2–2a results),
@@ -170,7 +170,7 @@ Plans: `docs/plans/02_policy_rag_roadmap_revision.md` (why the roadmap changed, 
 | Usable models (AWS_US_WEST_2, Gate 3.0) | Generator `claude-sonnet-4-5`; judge `openai-gpt-5.4` (fallback `mistral-large3`). `gemini-3.1-pro`, `openai-gpt-4.1` return NULL in JSON mode; `llama4-maverick` errors; `openai-gpt-5.5` is listed but not allowed |
 | Cost actuals for AI calls | `CORTEX_FUNCTIONS_USAGE_HISTORY` returns no AI_COMPLETE rows on this account; use `ACCOUNT_USAGE.CORTEX_AI_FUNCTIONS_USAGE_HISTORY` (per query: credits + token `METRICS`). Eval loops that call the LLM per question keep the warehouse running for the whole loop: in Phase 3 the warehouse (0.378 cr) cost more than the AI calls (0.258 cr). Queries: `manual-validations/cost-reconciliation.sql` |
 | snow CLI legacy templating reads `&name` as a variable, even in comments | Write "Q and A", not the ampersand form, or run with `--enable-templating NONE` |
-| **MFA required for password logins** (since the account upgrade, 2026-11-19) | The `rental-dev` password connection (snow CLI) and the password session-token REST helper both fail: "Multi-factor authentication is required for this account". Programmatic access needs MFA enrolment plus key-pair (JWT), a programmatic access token, or MFA with token caching |
+| **MFA required for password logins** (since the account upgrade, 2026-11-19) | The `rental-dev` password connection (snow CLI) and the password session-token REST helper both fail: "Multi-factor authentication is required for this account". Programmatic access needs MFA enrolment plus key-pair (JWT), a programmatic access token, or MFA with token caching **Resolved 2026-11-20:** `rental-dev` uses key-pair auth (`authenticator = SNOWFLAKE_JWT`, private key in `~/.config/snowflake/keys/`, outside the repo; public key set with `ALTER USER … SET RSA_PUBLIC_KEY`). REST calls: `snow connection generate-jwt`. `.gitignore` blocks `*.p8`, `*.pem`, `*rsa_key*` |
 | *(history)* **Trial account: included AI credits exhausted** (2026-11-19, error `399588` on the first agent run; account upgraded the same day) | Cortex Agent runs (and probably all AI_* calls) are blocked until the account is upgraded. Metadata DDL (CREATE AGENT etc.) still works. Doc 06 §4.1. The AI allowance is separate from the $400 trial balance: on 2026-11-19 the balance still had **$326.84** while AI-type usage totalled ≈ 22.3 cr, of which **20.4 cr was the CoCo Snowsight assistant** (2026-11-10/11), AI functions 1.69 cr, AI services (Cortex Analyst) 0.20 cr. Cortex Analyst bills ≈ 0.067 cr per message (3 messages = 0.201 cr) |
 | `snow://workspace/…` paths only work in Snowsight | Local staging uses `scripts/stage_source_files.sh` |
 

@@ -10,9 +10,9 @@ known gaps. This is step 3 of the project goal ("combine both"; see `00_project_
 | **Implemented in** | `src/gold-layer-code/agent/01_avelto_agent.sql` |
 | **Built over** | `GOLD.avelto_semantic_view` (doc 05), `GOLD.policy_search` (docs 01, 02) |
 | **Companion docs** | `05_semantic_views.md` (the structured tool); `03_grounded_answers_and_abstention.md` (the hand-built policy answer step this agent does *not* use yet) |
-| **Status** | Created 2026-11-19 (version `VERSION$1`); spec verified with `DESCRIBE AGENT`. Not yet run on questions |
+| **Status** | Created 2026-11-19 (version `VERSION$1`); spec verified with `DESCRIBE AGENT`. Not yet run on questions. Spec update for reviews/tickets deployed 2026-11-20 (§3.6); `CREATE OR REPLACE` reset the version list to `VERSION$1` |
 
-**Last updated:** 2026-11-19 (agent created)
+**Last updated:** 2026-11-20 (instructions + analyst tool description for reviews and tickets deployed)
 
 ## Implementation map
 
@@ -98,6 +98,9 @@ Why the description was not worded as requested: the planner chooses tools **by 
 A description that promises customer feedback would send "what do customers complain about?" to a
 policy index, and the agent would answer from policy text as if it were feedback.
 
+*Follow-up 2026-11-20:* the structured half of this gap is being closed in the semantic view
+(doc 05 §3.7) and the agent spec (§3.6). The text half (option 2) is still open.
+
 ### 3.2 Orchestration model `claude-sonnet-4-5` (2026-11-19)
 
 Same model family as the Phase 3 generator, which Gate 3.0 confirmed is available in this region
@@ -121,6 +124,32 @@ A cost guard: one "both tools" question is at most a few tool calls plus one ans
 runaway planning loop from spending tokens. It may need to be raised if combined questions time out.
 
 ---
+
+### 3.6 Reviews and tickets reachable through the analyst tool (deployed 2026-11-20)
+
+Trigger: the user noted that reviews were connected to nothing, so CoWork (which reaches the data
+through this agent) could not answer any review question. Doc 05 §3.7 adds reviews and tickets to the
+semantic view. The agent spec must change with it, because **the planner routes by tool description**:
+with the old description ("structured reservation data") and the old response rule ("reviews and tickets
+are not searchable, say you do not know"), review questions would still be declined.
+
+Changes (metadata only, `CREATE OR REPLACE AGENT`):
+- `analyst_reservations` description lists the review and ticket metrics and dimensions and says it
+  holds **no review or ticket text**. Tool name kept, to avoid churn in docs and any client config.
+- Orchestration instructions: reviews (rating, sentiment) and tickets (category, channel, status) are
+  analyst questions.
+- Response instructions: reviews/tickets belong to the branch of their reservation; tickets without a
+  reservation show as a blank branch; review/ticket dates exist but rental dates do not; sentiment is
+  an AI label; "what do customers write" gets the available numbers plus a note that the text is not
+  searchable yet (replaces the flat "say you do not know").
+- `search_policies` description: "does not contain the **text** of reviews or tickets".
+- 4th sample question: average rating and unresolved tickets by branch.
+
+Verified with `DESCRIBE AGENT`: 2 tools, `claude-sonnet-4-5`, 4 sample questions, new descriptions and
+response rule present. Not yet run on a question (smoke test, §5).
+
+Rejected: renaming the tool to `analyst_operations` (cosmetic, touches every reference); pointing the
+agent at a second semantic view for feedback (doc 05 §3.7, alternatives).
 
 ## 4. Validation (2026-11-19)
 
@@ -157,8 +186,8 @@ What the question should show once it can run (written before any result, so it 
 
 | Item | Why it matters |
 |---|---|
-| **Smoke test** the three sample questions via the `:run` REST API | confirm routing analyst / search / both and that combined answers keep numbers from Analyst. Auth: password session-token helper as in doc 05 §4.1, or key-pair / PAT (account change, needs approval) |
-| **Feedback search service** (option 2, §3.1) | "what do customers say" questions are currently answered "don't know" |
+| **Smoke test** the four sample questions via the `:run` REST API (now possible: key-pair auth, JWT from `snow connection generate-jwt`) | confirm routing analyst / search / both and that combined answers keep numbers from Analyst. Auth: password session-token helper as in doc 05 §4.1, or key-pair / PAT (account change, needs approval) |
+| **Feedback search service** (option 2, §3.1) | "what do customers say" questions can only get numbers (rating, sentiment, category), not the text |
 | Agent evaluation | routing accuracy + answer correctness on golden and held-out questions; compare policy answers with `a1_grounded_answer` (same questions, agent vs hand-built step) |
 | Time dimension in the semantic view (doc 05 §5) | the agent cannot answer period questions |
 | AI Observability (TruLens) | deferred by plan 03 §2.3 to this stage |

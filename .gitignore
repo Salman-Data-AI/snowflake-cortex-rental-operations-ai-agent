@@ -3,3 +3,8 @@
 .vscode/
 
 cost-tracking/
+
+# Snowflake key-pair auth: keys live in ~/.config/snowflake/keys/, never in the repo
+*.p8
+*.pem
+*rsa_key*
