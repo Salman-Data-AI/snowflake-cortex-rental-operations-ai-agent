@@ -9,5 +9,18 @@
       "Bash(git log:*)",
       "Bash(git show:*)"
     ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/block_git_writes.py\""
+          }
+        ]
+      }
+    ]
   }
 }

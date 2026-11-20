@@ -10,9 +10,9 @@ known gaps. This is step 3 of the project goal ("combine both"; see `00_project_
 | **Implemented in** | `src/gold-layer-code/agent/01_avelto_agent.sql` |
 | **Built over** | `GOLD.avelto_semantic_view` (doc 05), `GOLD.policy_search` (docs 01, 02) |
 | **Companion docs** | `05_semantic_views.md` (the structured tool); `03_grounded_answers_and_abstention.md` (the hand-built policy answer step this agent does *not* use yet) |
-| **Status** | Created 2026-11-19 (version `VERSION$1`); spec verified with `DESCRIBE AGENT`. Not yet run on questions. Spec update for reviews/tickets deployed 2026-11-20 (§3.6); `CREATE OR REPLACE` reset the version list to `VERSION$1` |
+| **Status** | Created 2026-11-19 (version `VERSION$1`); spec verified with `DESCRIBE AGENT`. Run interactively by the user in cowork on 2026-11-20 (version `LIVE`; traces: doc 07). Agent evaluation deferred. Spec update for reviews/tickets deployed 2026-11-20 (§3.6); `CREATE OR REPLACE` reset the version list to `VERSION$1` |
 
-**Last updated:** 2026-11-20 (instructions + analyst tool description for reviews and tickets deployed)
+**Last updated:** 2026-11-20 (instructions + analyst tool description for reviews and tickets deployed; first runs observed via traces, doc 07)
 
 ## Implementation map
 
@@ -186,11 +186,12 @@ What the question should show once it can run (written before any result, so it 
 
 | Item | Why it matters |
 |---|---|
-| **Smoke test** the four sample questions via the `:run` REST API (now possible: key-pair auth, JWT from `snow connection generate-jwt`) | confirm routing analyst / search / both and that combined answers keep numbers from Analyst. Auth: password session-token helper as in doc 05 §4.1, or key-pair / PAT (account change, needs approval) |
+| ~~**Smoke test** via the `:run` REST API~~ | **Superseded 2026-11-20:** the user tested the agent interactively in cowork (Snowflake Intelligence); 5 turns traced, all `SUCCESS`, routes Analyst-only and Analyst + search seen (doc 07 §5). Systematic routing checks belong to the agent evaluation |
 | **Feedback search service** (option 2, §3.1) | "what do customers say" questions can only get numbers (rating, sentiment, category), not the text |
 | Agent evaluation | routing accuracy + answer correctness on golden and held-out questions; compare policy answers with `a1_grounded_answer` (same questions, agent vs hand-built step) |
 | Time dimension in the semantic view (doc 05 §5) | the agent cannot answer period questions |
-| AI Observability (TruLens) | deferred by plan 03 §2.3 to this stage |
+| ~~AI Observability (TruLens)~~ | **Done 2026-11-20** with native agent monitoring instead of TruLens: every turn is traced; per-turn routing, SQL, tokens and time are readable in SQL. See doc 07 |
+| Cost per turn (from doc 07 §5) | multi-step turns are expensive (one billed request 0.168 cr; a 20-step Deep Research turn used 1.22 M tokens). The 60 s / 16k budget does not bound input re-reads. Measure before any evaluation run |
 
 ---
 
