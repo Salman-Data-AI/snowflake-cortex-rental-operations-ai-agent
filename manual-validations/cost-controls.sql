@@ -19,7 +19,7 @@
 --     budget (60 s / 16k tokens per question), the answer cache, and not
 --     using CoCo (20.4 of ~33 credits used up to 2026-11-19).
 --   * No model restriction: ACCOUNTADMIN bypasses it (section 3).
---   * Limits: warehouse 5 credits/month, account 10 credits/month.
+--   * Limits: warehouse 4 credits/month, account 10 credits/month.
 --     Change the numbers below to adjust.
 -- =============================================================
 
@@ -27,7 +27,7 @@
 -- 1) Hard cap on the warehouse: resource monitor
 -- -------------------------------------------------------------
 CREATE OR REPLACE RESOURCE MONITOR rental_ops_monthly
-  WITH CREDIT_QUOTA = 5
+  WITH CREDIT_QUOTA = 4
   FREQUENCY = MONTHLY
   START_TIMESTAMP = IMMEDIATELY
   TRIGGERS ON 75 PERCENT DO NOTIFY
@@ -72,7 +72,7 @@ CALL SNOWFLAKE.LOCAL.ACCOUNT_ROOT_BUDGET!SET_SPENDING_LIMIT(10);
 -- Validation (metadata only, no warehouse)
 -- -------------------------------------------------------------
 SHOW RESOURCE MONITORS LIKE 'RENTAL_OPS_MONTHLY';
--- Expected: credit_quota 5, frequency MONTHLY, warehouses COMPUTE_WH,
+-- Expected: credit_quota 4, frequency MONTHLY, warehouses COMPUTE_WH,
 --           notify_at 75%, suspend_at 100%, suspend_immediately_at 110%.
 
 SHOW WAREHOUSES LIKE 'COMPUTE_WH';

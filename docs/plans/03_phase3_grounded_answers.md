@@ -116,6 +116,10 @@ is precisely abstention and correctness against labels, and the existing harness
 comparable runs in SQL. Recommendation: SQL-native for Phase 3; adopt AI Observability when the
 Cortex Agent arrives (agent tracing is where it adds most). Check current Snowflake docs then.
 
+*Update 2026-11-20 (plan 04):* the docs now say native Cortex Agents are traced automatically, so the
+agent uses native agent monitoring (SQL over `GET_AI_OBSERVABILITY_EVENTS`), not TruLens. TruLens on
+`answer_policy_question` was not pursued. See `docs/design-knowledge/07_ai_observability.md` §6.
+
 ### 2.4 Guarding against tuning on the exam
 
 With only 60 labelled queries there is no separate tuning set. Rules:

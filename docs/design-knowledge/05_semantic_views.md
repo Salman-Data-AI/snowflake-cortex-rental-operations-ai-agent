@@ -13,7 +13,7 @@ and the Cortex Agent build on it later.
 | **Companion docs** | `00_project_context.md` (map); `06_cortex_agent.md` (the Cortex Agent uses this view as its `analyst_reservations` tool) |
 | **Status** | Created and validated 2026-11-19 (4 metrics, 5 dimensions; all totals match the fact table). **v2 deployed and validated 2026-11-20** (+ reviews and tickets: 8 tables, 7 relationships, 6 facts, 14 dimensions, 10 metrics; all totals match) |
 
-**Last updated:** 2026-11-20 (v2 with reviews + support tickets deployed and validated, §3.7)
+**Last updated:** 2026-11-20 (v2 with reviews + support tickets deployed and validated, §3.7; double-counting rejections from agent traces added to §5)
 
 ## Implementation map
 
@@ -308,6 +308,7 @@ dissatisfaction. Cost: one warehouse burst for both validation batches (estimate
 | Verified queries / `AI_SQL_GENERATION` instructions | improve Cortex Analyst accuracy on known question shapes |
 | Cortex Analyst evaluation | natural-language questions with expected SQL results, same discipline as the policy RAG eval (golden + held-out) |
 | Review / ticket text search (`feedback_search`) | "what do customers complain about" needs the text, which the view does not hold (doc 06 §5) |
+| "Potential double counting" rejections (found in agent traces, 2026-11-20) | In one 20-step agent turn, Cortex Analyst generated two queries that the semantic view rejected: "This query is being rejected due to potential double counting", for a reservation-side column aggregated across the review/ticket join. The fan-out guard works as designed, but each rejection costs the agent a full planning round trip (≈ 50–60k tokens). Options to study: verified queries or `AI_SQL_GENERATION` instructions for review/ticket-by-revenue questions, or metrics that pre-aggregate per reservation. Evidence: doc 07 §5, plan 04 Gate O1b |
 
 ---
 

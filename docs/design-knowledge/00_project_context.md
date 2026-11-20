@@ -7,7 +7,7 @@ one ties them together and says where each piece is implemented.
 
 | | |
 |---|---|
-| **Last updated** | 2026-11-20 (semantic view v2 + agent update for reviews and tickets deployed; CLI switched to key-pair auth) |
+| **Last updated** | 2026-11-20 (semantic view v2 + agent update for reviews and tickets deployed; CLI switched to key-pair auth; cost controls verified active at 4 cr; git-write block hook added; AI Observability plan 04 done, doc 07) |
 | **Repo purpose** | Learning repo: build a rental-operations AI assistant on Snowflake, and record *why* each design choice was made |
 | **Maintenance** | Kept current per `CLAUDE.md` ("Knowledge docs"): update with every change to objects, results or decisions |
 
@@ -23,7 +23,8 @@ assistant for rental operations that can:
    (retrieval-augmented generation) track and the current focus.
 2. **Answer data questions** ("revenue by branch last month") over a star schema, via a
    Semantic View (`GOLD.avelto_semantic_view`, created 2026-11-19) + Cortex Analyst (planned).
-3. **Combine both** in a Cortex Agent (`GOLD.avelto_agent`, created 2026-11-19; not yet run on questions).
+3. **Combine both** in a Cortex Agent (`GOLD.avelto_agent`, created 2026-11-19; run interactively in
+   cowork 2026-11-20, every turn traced and readable in SQL: doc 07; formal evaluation deferred).
 
 Everything runs inside Snowflake: SQL pipelines, Cortex AI functions, Cortex Search. The project was
 started in Snowflake's CoCo assistant and continued in Claude Code; the SQL in `src/` and `evaluation/`
@@ -105,6 +106,7 @@ begins with a comment block giving its purpose, prerequisites and design notes.
 | Gold | `policy_search` (Cortex Search service) | `src/gold-layer-code/unstructured-data/02_policy_search_service.sql` |
 | Gold | `answer_policy_question` (procedure), `policy_answer_cache` (table) | `src/gold-layer-code/unstructured-data/03_answer_policy_question.sql` |
 | Gold | `avelto_agent` (Cortex Agent: `analyst_reservations` → semantic view, `search_policies` → `policy_search`) | `src/gold-layer-code/agent/01_avelto_agent.sql`; design: doc 06 |
+| Ops (read-only) | agent traces: `SNOWFLAKE.LOCAL.GET_AI_OBSERVABILITY_EVENTS(...)` (Snowflake-managed event table, nothing created) + billing `ACCOUNT_USAGE.CORTEX_AGENT_USAGE_HISTORY` | `manual-validations/agent-observability.sql` (discovery §1–3, per-turn summary §4a, drill-down §4b, credits §4c); design: doc 07 |
 
 ### 4.2 Evaluation (schema `RENTAL_OPS.EVALUATION`)
 
@@ -147,11 +149,13 @@ begins with a comment block giving its purpose, prerequisites and design notes.
 | 3 | Grounded answers with LLM abstention + answer-level eval | `a1_grounded_answer` (+ `_holdout`) | **Done** (Gate 3.4): golden OOS abstention 8/8, false abstention 0/30, strict correctness 29/30 (human-reviewed); held-out 7/8, 2/14, strict 8/14 (lenient 12/14); citations 100% valid; judge–human κ 0.77. Held-out failures mostly answer-step, recorded as findings (no `ga_p2`: leakage-and-fix loop). Phase cost ≈ 0.64 cr. Next: scoring decision D-open-1, then the Cortex Agent stage |
 | 4 | Query rewrite (conditional) | `v2_query_rewrite` | **not triggered** at Gate 3.4 (failures are answer-step); parked |
 | SV | Semantic View over the reservations star schema | — | **Created** 2026-11-19: revenue USD, reservation count, avg rental days, one-way rentals by country, region, branch (pickup), car category, currency. Totals match the fact table (2,000 / 1,514,210.12 USD / 7.415 / 1,818). No time dimension yet. **v2 deployed 2026-11-20:** + reviews (count, avg rating, negative share by sentiment / stars / language / review date) and tickets (count, unresolved by category / channel / status / created date), joined via reservation; validated (1,400 / 3.689 / 301 negative; 300 / 223 unresolved; no fan-out) |
-| AG | Cortex Agent over semantic view + policy search | — | **Created** 2026-11-19: `claude-sonnet-4-5` orchestration, routing numbers → Analyst, documents → search, both → combine. Search covers policies only (reviews/tickets not indexed; user chose to deploy policy-only). Not yet run on questions. 2026-11-20: spec update deployed so review/ticket *numbers* route to Analyst (doc 06 §3.6); review text search still open |
-| later | Agent smoke test + evaluation; feedback search service; time dimension | — | separate planning |
+| AG | Cortex Agent over semantic view + policy search | — | **Created** 2026-11-19: `claude-sonnet-4-5` orchestration, routing numbers → Analyst, documents → search, both → combine. Search covers policies only (reviews/tickets not indexed; user chose to deploy policy-only). Not yet run on questions. 2026-11-20: spec update deployed so review/ticket *numbers* route to Analyst (doc 06 §3.6); review text search still open. 2026-11-20: user ran it in cowork (5 turns, all `SUCCESS`) |
+| OBS | AI Observability for the agent (plan 04, gates O1 + O2) | — | **Done** 2026-11-20: native agent traces (not TruLens) read via `GET_AI_OBSERVABILITY_EVENTS`; span names/keys discovered from real rows; per-turn summary works. 5 cowork turns = 2.03 M tokens (one 20-step Deep Research turn 1.22 M); one billed request = 0.168 cr. Semantic view rejected 2 Analyst queries for double counting. TruLens on the hand-built RAG not pursued. Doc 07 |
+| later | Agent evaluation (Cortex Agent evaluations, doc 07 §7; budget first); feedback search service; time dimension | — | separate planning |
 
 Plans: `docs/plans/02_policy_rag_roadmap_revision.md` (why the roadmap changed, Phase 2–2a results),
-`docs/plans/03_phase3_grounded_answers.md` (Phase 3 gates). `01_…` is historical.
+`docs/plans/03_phase3_grounded_answers.md` (Phase 3 gates), `docs/plans/04_ai_observability.md`
+(agent observability gates and raw results). `01_…` is historical.
 
 ---
 
@@ -159,7 +163,7 @@ Plans: `docs/plans/02_policy_rag_roadmap_revision.md` (why the roadmap changed, 
 
 | Constraint | Effect on the design |
 |---|---|
-| **Cost:** Enterprise edition, $3/credit; X-Small warehouse (1 cr/h, 60 s minimum per resume) | All dynamic tables are **intentionally suspended**; refreshes are one-off `ALTER DYNAMIC TABLE … REFRESH`. Each gate's work is batched into one script. Every LLM call per row is cached by input hash. Account cost controls (resource monitor 5 cr/month on `COMPUTE_WH` = hard stop; account budget 10 cr/month = alerts only, covers AI): `manual-validations/cost-controls.sql`, written 2026-11-19, **not yet run**. Model restriction rejected: `CORTEX_MODELS_ALLOWLIST` is deprecated (only `NONE` accepted; per-model `CORTEX-MODEL-ROLE-*` grants replace it), and ACCOUNTADMIN, which this project runs as, always has access to all models, so neither would cap anything |
+| **Cost:** Enterprise edition, $3/credit; X-Small warehouse (1 cr/h, 60 s minimum per resume) | All dynamic tables are **intentionally suspended**; refreshes are one-off `ALTER DYNAMIC TABLE … REFRESH`. Each gate's work is batched into one script. Every LLM call per row is cached by input hash. Account cost controls (`manual-validations/cost-controls.sql`), **active** (verified 2026-11-20): resource monitor `RENTAL_OPS_MONTHLY` **4 cr/month** on `COMPUTE_WH` = hard stop (notify 75%, suspend 100%, suspend immediately 110%; created 2026-11-19); account budget 10 cr/month = alerts only, covers AI. *(History: the script and this doc said 5 cr and "not yet run"; the user had set 4 cr when running it, so the script was aligned to 4.)* Open: `notify_users` on the monitor and the budget email recipient are not set, so no alert reaches anyone yet. Model restriction rejected: `CORTEX_MODELS_ALLOWLIST` is deprecated (only `NONE` accepted; per-model `CORTEX-MODEL-ROLE-*` grants replace it), and ACCOUNTADMIN, which this project runs as, always has access to all models, so neither would cap anything |
 | **AI calls only in Silver plain tables** (run once, not on every refresh) | Gold dynamic tables never call AI. Exception: query-time answering in GOLD **procedures** (one call per user query), with a cache |
 | CTAS resets change tracking | Re-run `ALTER TABLE … SET CHANGE_TRACKING = TRUE` after a Silver CTAS (Gold incremental DTs need it) |
 | Legacy `SNOWFLAKE.CORTEX.EMBED_TEXT_*` is **blocked** on this account | Cortex Search uses **user-provided vectors**: `AI_EMBED('snowflake-arctic-embed-l-v2.0', …)` + `VECTOR INDEXES col (query_model = …)`; chunks ≤ 512 tokens |
@@ -172,6 +176,7 @@ Plans: `docs/plans/02_policy_rag_roadmap_revision.md` (why the roadmap changed, 
 | snow CLI legacy templating reads `&name` as a variable, even in comments | Write "Q and A", not the ampersand form, or run with `--enable-templating NONE` |
 | **MFA required for password logins** (since the account upgrade, 2026-11-19) | The `rental-dev` password connection (snow CLI) and the password session-token REST helper both fail: "Multi-factor authentication is required for this account". Programmatic access needs MFA enrolment plus key-pair (JWT), a programmatic access token, or MFA with token caching **Resolved 2026-11-20:** `rental-dev` uses key-pair auth (`authenticator = SNOWFLAKE_JWT`, private key in `~/.config/snowflake/keys/`, outside the repo; public key set with `ALTER USER … SET RSA_PUBLIC_KEY`). REST calls: `snow connection generate-jwt`. `.gitignore` blocks `*.p8`, `*.pem`, `*rsa_key*` |
 | *(history)* **Trial account: included AI credits exhausted** (2026-11-19, error `399588` on the first agent run; account upgraded the same day) | Cortex Agent runs (and probably all AI_* calls) are blocked until the account is upgraded. Metadata DDL (CREATE AGENT etc.) still works. Doc 06 §4.1. The AI allowance is separate from the $400 trial balance: on 2026-11-19 the balance still had **$326.84** while AI-type usage totalled ≈ 22.3 cr, of which **20.4 cr was the CoCo Snowsight assistant** (2026-11-10/11), AI functions 1.69 cr, AI services (Cortex Analyst) 0.20 cr. Cortex Analyst bills ≈ 0.067 cr per message (3 messages = 0.201 cr) |
+| **No automated git writes** (user decision 2026-11-20: every commit, push and merge is made by hand) | Project hook in `.claude/settings.json` (PreToolUse on Bash) runs `.claude/hooks/block_git_writes.py`, which denies `git commit` / `push` / `merge` / `pull` / `cherry-pick` / `revert` / `am` (also with `-C dir` and other global options, and inside `&&` chains) and `gh pr merge`. Read-only git (`status`, `diff`, `log`, `merge-base`) passes. `pull`, `cherry-pick`, `revert` and `am` are included because they also create commits or merges. A permission deny rule was the alternative, rejected because prefix rules miss `git -C … commit` and chained commands. Known false positive: a heredoc or multi-line string with a line starting `git commit` (e.g. a script writing docs) is blocked; use the Edit tool for such text |
 | `snow://workspace/…` paths only work in Snowsight | Local staging uses `scripts/stage_source_files.sh` |
 
 ---
@@ -204,7 +209,8 @@ Plans: `docs/plans/02_policy_rag_roadmap_revision.md` (why the roadmap changed, 
 | `04_answer_evaluation_methods.md` | how answers are judged: LLM judge, human validation (kappa), scoring partly-right answers (strict/lenient, partial credit, nuggets, claim-level), randomness, small-sample intervals |
 | `05_semantic_views.md` | the semantic view over the star schema: building blocks, role-playing branch, join paths, validation |
 | `06_cortex_agent.md` | the Cortex Agent: tools, routing instructions, why search is policy-only, open items |
-| `docs/plans/02_…`, `03_…` | gate-by-gate plans and raw results |
+| `07_ai_observability.md` | how agent turns are traced, trace anatomy, how to query traces and credits, first findings (cost per step), why not TruLens, where the agent evaluation will live |
+| `docs/plans/02_…`, `03_…`, `04_…` | gate-by-gate plans and raw results |
 | `CLAUDE.md` | working rules, conventions, cost tracking |
 
 For implementation questions, each design doc has an **Implementation map** listing the files that
