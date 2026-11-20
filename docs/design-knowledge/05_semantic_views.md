@@ -11,15 +11,16 @@ and the Cortex Agent build on it later.
 | **Implemented in** | `src/gold-layer-code/structured-data/02_avelto_semantic_view.sql` |
 | **Built over** | `src/gold-layer-code/structured-data/01_gold_star_schema.sql`; column reference `docs/GOLD_LAYER_DOCUMENTATION.md` |
 | **Companion docs** | `00_project_context.md` (map); `06_cortex_agent.md` (the Cortex Agent uses this view as its `analyst_reservations` tool) |
-| **Status** | Created and validated 2026-11-19 (4 metrics, 5 dimensions; all totals match the fact table) |
+| **Status** | Created and validated 2026-11-19 (4 metrics, 5 dimensions; all totals match the fact table). **v2 deployed and validated 2026-11-20** (+ reviews and tickets: 8 tables, 7 relationships, 6 facts, 14 dimensions, 10 metrics; all totals match) |
 
-**Last updated:** 2026-11-19 (semantic view created)
+**Last updated:** 2026-11-20 (v2 with reviews + support tickets deployed and validated, §3.7)
 
 ## Implementation map
 
 | What | Object | File |
 |---|---|---|
-| Semantic view: 6 logical tables, 5 relationships, 3 facts, 5 dimensions, 4 metrics | `GOLD.avelto_semantic_view` | `src/gold-layer-code/structured-data/02_avelto_semantic_view.sql` |
+| *(history)* v1 2026-11-19: 6 logical tables, 5 relationships, 3 facts, 5 dimensions, 4 metrics | `GOLD.avelto_semantic_view` | replaced by v2 in the same file |
+| v2 (deployed 2026-11-20): + `reviews`, `tickets` logical tables → 8 tables, 7 relationships, 6 facts, 14 dimensions, 10 metrics | `GOLD.avelto_semantic_view` over `GOLD.reviews_enriched`, `GOLD.support_tickets_enriched` | same file; Gold sources in `src/gold-layer-code/semi-structured-data/01_…`, `02_…` |
 | Underlying fact + dimensions (dynamic tables, suspended) | `GOLD.fact_reservations`, `GOLD.dim_branches`, `dim_cars`, `dim_customers`, `dim_countries`, `dim_currencies` | `src/gold-layer-code/structured-data/01_gold_star_schema.sql` |
 | Validation queries (totals vs fact table, per-dimension sums) | — | end of `02_avelto_semantic_view.sql` |
 
@@ -157,6 +158,68 @@ Summing `amount_local` across currencies is meaningless (yen + euros). The metri
 and its comment says so, so Cortex Analyst is steered away from `amount_local`. Caveat inherited from
 Gold: exchange rates are one undated snapshot, so USD figures for past periods are approximate.
 
+### 3.7 Reviews and support tickets added as structured data (v2, deployed 2026-11-20)
+
+**Problem.** `GOLD.reviews_enriched` (1,400 rows) and `GOLD.support_tickets_enriched` (300 rows) were
+built through Bronze → Silver → Gold but were connected to nothing the agent (or any client using the
+agent, such as CoWork) can reach: not the semantic view, not a search service. Every review or ticket
+question was answered "I don't know" (doc 06 §3.1).
+
+**Decision.** Split the gap in two. *Numbers about* reviews and tickets go into this semantic view
+(this section). *What customers wrote* needs a search service and is a separate step (doc 06 §5). The
+view comes first because it is metadata only, costs no AI tokens and does not touch the policy index
+that Phases 1–3 measured.
+
+**Join design: only through `reservation_id → reservations`.** Reviews carry their own `branch_id`,
+`car_id` and `customer_id`. Linking those directly as well as through the reservation would give two
+paths to `branches` and `cars` (the same problem §3.3 avoids). Evidence from the source files
+(`data/Unstructured/*.csv` against `data/BookWave/reservations_export.json`, checked locally, no
+warehouse):
+
+| Check | Reviews | Tickets |
+|---|---|---|
+| rows / distinct PK | 1,400 / 1,400 | 300 / 300 |
+| no reservation_id | 0 | **66 (22%)** |
+| reservation_id not in reservations | 0 | 0 |
+| review branch = reservation **pickup** branch | 1,400 / 1,400 (= return branch only 131) | n/a |
+| car / customer match the reservation | 1,400 / 1,400 | customer 234 / 234 |
+| reviews per reservation | max 1 | |
+
+So for reviews the reservation path loses nothing, and "Branch" keeps one meaning (pickup) across the
+whole view. For tickets the 66 without a reservation still count in totals but appear as a NULL branch
+/ country / car category when split; the agent's response instructions say so.
+
+| Alternative | Why not chosen |
+|---|---|
+| reviews → `branches`, `cars` directly (no link to reservations) | equally lossless for reviews, but two independent paths into `branches` (from reviews and from reservations); also gives up "reviews by payment currency" for nothing |
+| tickets → `customers` (would keep the 66) | `customers` exposes no dimensions (PII, §3.5), so the link answers nothing; and it would be a second path to `customers` |
+| Reviews/tickets as a separate semantic view | Cortex Analyst takes one view per tool; a second view means a second agent tool and no "rating next to revenue by branch" in one query |
+
+**What is exposed.**
+
+| Kind | Reviews | Tickets |
+|---|---|---|
+| Facts | `review_rating` (1–5), `is_negative` (AI_SENTIMENT = negative) | `is_unresolved` (status ≠ Resolved) |
+| Dimensions | sentiment, star rating, language, review date | category (source system, default), AI category, channel, status, created date |
+| Metrics | review count, avg rating, negative reviews, negative share | ticket count, unresolved tickets |
+
+- **Two ticket categories.** The source-system `category` is the default ("Ticket Category"); the
+  `AI_CLASSIFY` label is exposed as "AI Ticket Category", with a comment telling Analyst to use it only
+  when asked. Same 8 labels in both, so Analyst could confuse them; the comments are the guard.
+- **Review / ticket dates are not rental dates.** They are the first date dimensions in the view, but
+  "revenue last month" still cannot be answered (§5).
+- **No text.** `review_text(_en)` and `ticket_body` are deliberately not dimensions: grouping by free
+  text is meaningless, and ticket bodies are only partly redacted text.
+- Sentiment is an AI label (`AI_SENTIMENT` on the original language, Silver); the agent is told to say so.
+
+**Expected values (validation in the SQL file):** review_count 1,400, avg_rating 3.689 (5,164 / 1,400;
+ratings 1★ 124, 2★ 163, 3★ 220, 4★ 411, 5★ 482), ticket_count 300, unresolved 223 (Open 81, In
+Progress 65, Escalated 77; Resolved 77), ticket categories 8 rows summing to 300; reservation totals
+unchanged.
+
+**Deployment.** First drafted while `snow sql` was blocked by the MFA requirement (doc 00 §6); deployed
+the same day after the CLI was switched to key-pair auth. Results are in §4.2.
+
 ---
 
 ## 4. Validation results (2026-11-19)
@@ -217,6 +280,22 @@ RENTAL_OPS.GOLD.AVELTO_SEMANTIC_VIEW`, request id `6a74faa2-dbdd-464a-a4d6-5924a
   For anything lasting, key-pair JWT or a programmatic access token (PAT) is the supported route;
   creating either is an account change and needs approval.
 
+### 4.2 v2 validation: reviews and tickets (2026-11-20)
+
+| Check | Expected | Through the view |
+|---|---|---|
+| reservation totals | 2,000 / 1,514,210.12 / 7.415 / 1,818 | unchanged |
+| review_count / avg_rating | 1,400 / 3.689 | 1,400 / 3.688571 |
+| negative_reviews / share | = `GOLD.reviews_enriched` count | 301 / 0.215 (source: positive 899, negative 301, mixed 172, neutral 28; no `unknown`) |
+| ticket_count / unresolved | 300 / 223 | 300 / 223 |
+| by branch (reservations + reviews + tickets in one query) | sums 2,000 / 1,400 / 300, NULL row = 66 tickets | 10 branches + NULL row (66 tickets, 48 unresolved); sums exact: **no fan-out** when metrics from three tables are combined |
+| ticket categories | 8 rows, 49 … 27, sum 300 | exact |
+| `DESCRIBE` | 7 relationships, 6 facts, 14 dimensions, 10 metrics | exact |
+
+Findings: average rating by branch is narrow, **3.51 (Davidstad) to 3.85 (North Valerie)**. North Valerie
+has both the best rating and the most tickets (31), so ticket volume tracks reservation volume more than
+dissatisfaction. Cost: one warehouse burst for both validation batches (estimate ≈ 0.02–0.04 cr).
+
 ---
 
 ## 5. Open items / next steps
@@ -228,6 +307,7 @@ RENTAL_OPS.GOLD.AVELTO_SEMANTIC_VIEW`, request id `6a74faa2-dbdd-464a-a4d6-5924a
 | Return-branch role (§3.1) | for "where do cars end up" questions |
 | Verified queries / `AI_SQL_GENERATION` instructions | improve Cortex Analyst accuracy on known question shapes |
 | Cortex Analyst evaluation | natural-language questions with expected SQL results, same discipline as the policy RAG eval (golden + held-out) |
+| Review / ticket text search (`feedback_search`) | "what do customers complain about" needs the text, which the view does not hold (doc 06 §5) |
 
 ---
 
