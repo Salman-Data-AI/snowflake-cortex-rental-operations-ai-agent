@@ -1,0 +1,9 @@
+# TruLens / TruApp observability for GOLD.answer_policy_question (plan 05). Python 3.12.
+trulens-core==2.16.0
+trulens-connectors-snowflake==2.16.0
+trulens-providers-cortex==2.16.0
+snowflake-snowpark-python==1.58.0
+snowflake-ml-python==1.54.0
+# snowflake-sqlalchemy 1.11.1 (pulled in by trulens-connectors-snowflake) breaks on SQLAlchemy 2.1
+# (ORMSelectCompileState was renamed), found in T0 2026-11-20.
+sqlalchemy>=2.0,<2.1

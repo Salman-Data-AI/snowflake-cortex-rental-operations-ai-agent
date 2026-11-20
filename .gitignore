@@ -1,5 +1,7 @@
 .snowflake/cache/compaction
 .venv/
+.venv-trulens/
+__pycache__/
 .vscode/
 
 cost-tracking/
