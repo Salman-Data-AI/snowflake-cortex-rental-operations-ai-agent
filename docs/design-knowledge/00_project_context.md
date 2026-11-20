@@ -7,7 +7,7 @@ one ties them together and says where each piece is implemented.
 
 | | |
 |---|---|
-| **Last updated** | 2026-11-20 (semantic view v2 + agent update for reviews and tickets deployed; CLI switched to key-pair auth; cost controls verified active at 4 cr; git-write block hook added; AI Observability plan 04 done, doc 07) |
+| **Last updated** | 2026-11-20 (semantic view v2 + agent update for reviews and tickets deployed; CLI switched to key-pair auth; cost controls verified active at 4 cr; git-write block hook added; AI Observability plan 04 done, doc 07; TruLens on the hand-built RAG approved (O-D7, plan 05), T0–T2 done) |
 | **Repo purpose** | Learning repo: build a rental-operations AI assistant on Snowflake, and record *why* each design choice was made |
 | **Maintenance** | Kept current per `CLAUDE.md` ("Knowledge docs"): update with every change to objects, results or decisions |
 
@@ -107,6 +107,7 @@ begins with a comment block giving its purpose, prerequisites and design notes.
 | Gold | `answer_policy_question` (procedure), `policy_answer_cache` (table) | `src/gold-layer-code/unstructured-data/03_answer_policy_question.sql` |
 | Gold | `avelto_agent` (Cortex Agent: `analyst_reservations` → semantic view, `search_policies` → `policy_search`) | `src/gold-layer-code/agent/01_avelto_agent.sql`; design: doc 06 |
 | Ops (read-only) | agent traces: `SNOWFLAKE.LOCAL.GET_AI_OBSERVABILITY_EVENTS(...)` (Snowflake-managed event table, nothing created) + billing `ACCOUNT_USAGE.CORTEX_AGENT_USAGE_HISTORY` | `manual-validations/agent-observability.sql` (discovery §1–3, per-turn summary §4a, drill-down §4b, credits §4c); design: doc 07 |
+| Ops (Python) | TruLens wrapper of `GOLD.answer_policy_question` (`.venv-trulens`, py 3.12); `EXTERNAL AGENT RENTAL_OPS.EVALUATION.POLICY_RAG` (created by TruApp in T2) | `observability/trulens/{policy_rag_app.py, run_eval.py, requirements.txt}`, `manual-validations/trulens-observability.sql`; plan 05, doc 07 §5b |
 
 ### 4.2 Evaluation (schema `RENTAL_OPS.EVALUATION`)
 
@@ -150,12 +151,13 @@ begins with a comment block giving its purpose, prerequisites and design notes.
 | 4 | Query rewrite (conditional) | `v2_query_rewrite` | **not triggered** at Gate 3.4 (failures are answer-step); parked |
 | SV | Semantic View over the reservations star schema | — | **Created** 2026-11-19: revenue USD, reservation count, avg rental days, one-way rentals by country, region, branch (pickup), car category, currency. Totals match the fact table (2,000 / 1,514,210.12 USD / 7.415 / 1,818). No time dimension yet. **v2 deployed 2026-11-20:** + reviews (count, avg rating, negative share by sentiment / stars / language / review date) and tickets (count, unresolved by category / channel / status / created date), joined via reservation; validated (1,400 / 3.689 / 301 negative; 300 / 223 unresolved; no fan-out) |
 | AG | Cortex Agent over semantic view + policy search | — | **Created** 2026-11-19: `claude-sonnet-4-5` orchestration, routing numbers → Analyst, documents → search, both → combine. Search covers policies only (reviews/tickets not indexed; user chose to deploy policy-only). Not yet run on questions. 2026-11-20: spec update deployed so review/ticket *numbers* route to Analyst (doc 06 §3.6); review text search still open. 2026-11-20: user ran it in cowork (5 turns, all `SUCCESS`) |
-| OBS | AI Observability for the agent (plan 04, gates O1 + O2) | — | **Done** 2026-11-20: native agent traces (not TruLens) read via `GET_AI_OBSERVABILITY_EVENTS`; span names/keys discovered from real rows; per-turn summary works. 5 cowork turns = 2.03 M tokens (one 20-step Deep Research turn 1.22 M); one billed request = 0.168 cr. Semantic view rejected 2 Analyst queries for double counting. TruLens on the hand-built RAG not pursued. Doc 07 |
+| OBS | AI Observability for the agent (plan 04, gates O1 + O2) | — | **Done** 2026-11-20: native agent traces (not TruLens) read via `GET_AI_OBSERVABILITY_EVENTS`; span names/keys discovered from real rows; per-turn summary works. 5 cowork turns = 2.03 M tokens (one 20-step Deep Research turn 1.22 M); one billed request = 0.168 cr. Semantic view rejected 2 Analyst queries for double counting. TruLens on the hand-built RAG not pursued *(superseded the same day, see OBS-T)*. Doc 07 |
+| OBS-T | TruLens / TruApp on `GOLD.answer_policy_question` (plan 05, O-D7) | — | **In progress** 2026-11-20: T0 (py 3.12 venv, `sqlalchemy<2.1` pin), T1 (wrapper dry run), T2 done: `EXTERNAL AGENT EVALUATION.POLICY_RAG`, run `t2_smoke_20261120` on 3 questions, 4 metrics by `openai-gpt-5.4` (26 judge calls). Answered: groundedness/answer rel./correctness 1.0; context relevance 0.27–0.53 (top-5 precision); correct abstention gets groundedness 0 → split by `is_answerable`. Next: T3 full runs = separate decision once T2 credits are in. Doc 07 §5b |
 | later | Agent evaluation (Cortex Agent evaluations, doc 07 §7; budget first); feedback search service; time dimension | — | separate planning |
 
 Plans: `docs/plans/02_policy_rag_roadmap_revision.md` (why the roadmap changed, Phase 2–2a results),
 `docs/plans/03_phase3_grounded_answers.md` (Phase 3 gates), `docs/plans/04_ai_observability.md`
-(agent observability gates and raw results). `01_…` is historical.
+(agent observability gates and raw results), `docs/plans/05_trulens_observability.md` (TruLens on the hand-built RAG). `01_…` is historical.
 
 ---
 
@@ -209,7 +211,7 @@ Plans: `docs/plans/02_policy_rag_roadmap_revision.md` (why the roadmap changed, 
 | `04_answer_evaluation_methods.md` | how answers are judged: LLM judge, human validation (kappa), scoring partly-right answers (strict/lenient, partial credit, nuggets, claim-level), randomness, small-sample intervals |
 | `05_semantic_views.md` | the semantic view over the star schema: building blocks, role-playing branch, join paths, validation |
 | `06_cortex_agent.md` | the Cortex Agent: tools, routing instructions, why search is policy-only, open items |
-| `07_ai_observability.md` | how agent turns are traced, trace anatomy, how to query traces and credits, first findings (cost per step), why not TruLens, where the agent evaluation will live |
+| `07_ai_observability.md` | how agent turns are traced, trace anatomy, how to query traces and credits, first findings (cost per step), TruLens: why dropped for the agent, why adopted for the hand-built RAG (O-D7), where the agent evaluation will live |
 | `docs/plans/02_…`, `03_…`, `04_…` | gate-by-gate plans and raw results |
 | `CLAUDE.md` | working rules, conventions, cost tracking |
 

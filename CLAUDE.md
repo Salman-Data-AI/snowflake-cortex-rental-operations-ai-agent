@@ -8,6 +8,7 @@ Originally built through Snowflake CoCo; SQL in `src/` is the record of what is 
 - `data/` — source files (FleetOps CSVs, BookWave JSON, Unstructured reviews/tickets/policy markdown)
 - `src/{bronze,silver,gold}-layer-code/{structured,semi-structured,unstructured}-data/NN_*.sql` — pipeline DDL, numbered in run order
 - `evaluation/` — retrieval-eval objects/scripts (schema `RENTAL_OPS.EVALUATION`), numbered in run order
+- `observability/trulens/` — TruLens wrapper of `GOLD.answer_policy_question` (Python 3.12 venv `.venv-trulens/`, gitignored; plan 05)
 - `scripts/` — CLI helpers (`stage_source_files.sh` uploads `data/` to `@RENTAL_OPS.BRONZE.LANDING`)
 - `manual-validations/` — ad-hoc checks and one-off ops (not part of the pipeline)
 - `docs/plans/` — numbered implementation plans (current roadmap: `02_policy_rag_roadmap_revision.md`; `01_…` is the historical assessment)
